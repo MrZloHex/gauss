@@ -6,7 +6,7 @@ mod file;
 use file::load_file;
 
 mod lexer;
-use lexer::parse_instr;
+use lexer::parse_code;
 
 fn main() {
     // Allocating memory for files' names
@@ -32,6 +32,6 @@ fn main() {
         }
     }
 
-    let main_is = parse_instr(load_file(input_filename));
+    let main_is = parse_code(load_file(input_filename));
 }
 

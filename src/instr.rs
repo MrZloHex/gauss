@@ -6,10 +6,20 @@ pub enum Location {
     Memory
 }
 
-pub enum Instruction {
-    Operation,
-    Memory
+pub struct Instruction {
+    pub op: Operation,
+    pub loc: Location
 }
+
+impl Default for Instruction {
+    fn default() -> Self {
+        Instruction {
+            op: Operation::Store,
+            loc: Location::Memory
+        }
+    }
+}
+
 
 
 
