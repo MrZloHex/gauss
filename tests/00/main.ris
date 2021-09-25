@@ -1,4 +1,4 @@
 
 !heap 8
 
-store mem 32 [0]
+store mem 32 $0

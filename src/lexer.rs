@@ -48,21 +48,20 @@ fn parse_instructions(source_code: Vec<String>) -> Vec<Instruction> {
 }
 
 fn lex_instruction(line: &String) -> Instruction {
-    let mut instruction = Instruction::default();
-    
     let instr: Vec<&str> = (*line).split_whitespace().collect();
 
     if instr.len() > 3 {
         if instr[0] == "store" {
-            instruction.op = Operation::Store;
-            instruction.loc = get_location(instr[1].clone());
+            let loc = get_location(instr[1].clone());
+            let (value, address) = get_numbers(instr[2].clone(), instr[3].clone());
+            let instruction = Instruction::new(Operation::Store(Store {loc,value, address}));
+            instruction
         } else {
             panic!("Unimplemented instruction")
         }
     } else {
         panic!("Unreacheable")
     }
-    instruction
 }
 
 fn get_location(loc: &str) -> Location {
@@ -70,5 +69,18 @@ fn get_location(loc: &str) -> Location {
         "mem" => Location::Memory,
         _ => panic!("Unreachable")
     }
+}
+
+fn get_numbers(arg1: &str, arg2: &str) -> (u128, u128) {
+    let mut value: u128 = 0;
+    let mut address: u128 = 0;
+    if arg1.starts_with('$') {
+        let address = arg1.split_at(1).1.parse::<u128>().unwrap();
+        let value = arg2.parse::<u128>().unwrap();
+    } else {
+        let value = arg1.parse::<u128>().unwrap();
+        let address = arg2.split_at(1).1.parse::<u128>().unwrap();
+    }
+    (value, address)
 }
 
