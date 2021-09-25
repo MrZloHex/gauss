@@ -21,7 +21,7 @@ pub_struct!( Store {
 impl Default for Store {
     fn default() -> Self {
         Store {
-            loc: Location::Memory,
+            loc: Location::Heap,
             value: 0,
             address: 0
         }
@@ -29,7 +29,7 @@ impl Default for Store {
 }
 
 pub enum Location {
-    Memory
+    Heap 
 }
 
 pub_struct!( Instruction {

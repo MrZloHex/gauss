@@ -1,4 +1,5 @@
 
 !heap 8
 
-store mem 32 $0
+store heap 32 $0
+store heap 34 $4

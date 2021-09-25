@@ -66,7 +66,7 @@ fn lex_instruction(line: &String) -> Instruction {
 
 fn get_location(loc: &str) -> Location {
     match loc {
-        "mem" => Location::Memory,
+        "heap" => Location::Heap,
         _ => panic!("Unreachable")
     }
 }
@@ -75,12 +75,11 @@ fn get_numbers(arg1: &str, arg2: &str) -> (u128, u128) {
     let mut value: u128 = 0;
     let mut address: u128 = 0;
     if arg1.starts_with('$') {
-        let address = arg1.split_at(1).1.parse::<u128>().unwrap();
-        let value = arg2.parse::<u128>().unwrap();
+        address = arg1.split_at(1).1.parse::<u128>().unwrap();
+        value = arg2.parse::<u128>().unwrap();
     } else {
-        let value = arg1.parse::<u128>().unwrap();
-        let address = arg2.split_at(1).1.parse::<u128>().unwrap();
+        value = arg1.parse::<u128>().unwrap();
+        address = arg2.split_at(1).1.parse::<u128>().unwrap();
     }
     (value, address)
 }
-
