@@ -1,1 +1,0 @@
-/home/zs/rimfupl/gauss-fnset/target/debug/gauss-fnset: /home/zs/rimfupl/gauss-fnset/src/cli.yaml /home/zs/rimfupl/gauss-fnset/src/file.rs /home/zs/rimfupl/gauss-fnset/src/instr.rs /home/zs/rimfupl/gauss-fnset/src/lexer.rs /home/zs/rimfupl/gauss-fnset/src/main.rs /home/zs/rimfupl/gauss-fnset/src/translator.rs

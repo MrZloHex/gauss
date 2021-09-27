@@ -1,1 +1,0 @@
-/home/zs/rimfupl/gauss-fnset/target/release/gauss-fnset: /home/zs/rimfupl/gauss-fnset/src/cli.yaml /home/zs/rimfupl/gauss-fnset/src/file.rs /home/zs/rimfupl/gauss-fnset/src/instr.rs /home/zs/rimfupl/gauss-fnset/src/lexer.rs /home/zs/rimfupl/gauss-fnset/src/main.rs

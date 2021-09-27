@@ -1,1 +1,0 @@
-/home/zs/rimfupl/target/debug/rimfupl: /home/zs/rimfupl/src/cli.yaml /home/zs/rimfupl/src/file.rs /home/zs/rimfupl/src/instr.rs /home/zs/rimfupl/src/lexer.rs /home/zs/rimfupl/src/main.rs /home/zs/rimfupl/src/translator.rs
