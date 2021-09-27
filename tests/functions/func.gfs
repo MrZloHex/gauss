@@ -1,0 +1,6 @@
+; simple function
+
+add: [ BYTE num1 | BYTE num2 ] => BYTE
+ | BYTE res: *num1 + *num2
+ | ret [ res ]
+ \_

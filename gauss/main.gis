@@ -1,4 +1,4 @@
-!uses <std>
+!uses <std.gfs>
 
 !uses <cli.gfs>
 !uses <file.gfs>
@@ -8,7 +8,7 @@
 ;
 ;
 
-seq[10 byte] filename: @parse_cli
-seq[10 byte] source_code: @load_file [ filename ]
-@std>>display [ source_code ]
- 
+SEQ[10 BYTE] filename: @parse_cli
+SEQ[10 BYTE] source_code: @load_file [ filename ]
+@display [ source_code ]
+@exit [ BYTE #0 ]

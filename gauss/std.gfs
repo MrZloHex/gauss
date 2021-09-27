@@ -8,3 +8,7 @@ display: [ SEQ[10 BYTE] filename | WORD fn_len ] => NULL
  \_
 
 
+exit: [ BYTE exit_code ] => NULL
+ | syscall [ #60 | exit_code ]
+ \_
+

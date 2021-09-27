@@ -1,0 +1,6 @@
+; Some kind of makefile for gauss proframming language
+
+function std.gfs
+compile main.gis < std.gfs
+link main
+
