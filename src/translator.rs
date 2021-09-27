@@ -20,6 +20,11 @@ pub fn generate_assembler(is: (Vec<Instruction>, ProgrammInfo), filename: String
                 match store.loc {
                    Location::Heap => code.push_str("\t\tmov [heap+rbx], rax\n"),
                 }
+            },
+            Operation::Set(set) => {
+                code.push_str(        "\t\t; == SET ==\n");
+                code.push_str(format!("\t\tmov rax, {}\n", set.value).as_str());
+                code.push_str(        "\t\tmov [heap], 
             }
         }
     }

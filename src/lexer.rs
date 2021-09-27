@@ -13,6 +13,7 @@ fn parse_directives(source_code: Vec<String>) -> ProgrammInfo {
             let direct = lex_directive(&line);
             match direct {
                 Directive::Heap(val) => proginfo.heap_vol = val,
+                _ => ()
             }
         }
     }
@@ -48,13 +49,44 @@ fn parse_instructions(source_code: Vec<String>) -> Vec<Instruction> {
 }
 
 fn lex_instruction(line: &String) -> Instruction {
-    let instr: Vec<&str> = (*line).split_whitespace().collect();
+    let mut instr: Vec<&str> = (*line).split_whitespace().collect();
 
     if instr.len() > 3 {
         if instr[0] == "store" {
-            let loc = get_location(instr[1].clone());
-            let (value, address) = get_numbers(instr[2].clone(), instr[3].clone());
+            instr.remove(0);
+            let mut loc: Location = Location::Heap;
+            let mut address: u64 = 0;
+            let mut value: u64 = 0;
+            for arg in instr {
+                if arg.starts_with('?') {
+                    loc = get_location(&arg[1..]);
+                } else if arg.starts_with('$') {
+                    address = (&arg[1..]).parse::<u64>().unwrap();
+                } else if arg.starts_with('#') {
+                    value = (&arg[1..]).parse::<u64>().unwrap();
+                } else {
+                    panic!("unreachable");
+                }
+            }
             let instruction = Instruction::new(Operation::Store(Store {loc,value, address}));
+            instruction
+        } else if instr[0] == "set" {
+            instr.remove(0);
+            let mut size = Size::Byte;
+            let mut value: u64 = 0;
+            let mut name: String = "_".to_string();
+            for arg in instr {
+                if arg.starts_with('_') {
+                    name = (&arg[1..]).to_string();
+                } else if arg.starts_with('#') {
+                    value = (&arg[1..]).parse::<u64>().unwrap();
+                } else if arg.starts_with('%') {
+                    size = get_size(&arg[1..]);
+                } else {
+                    panic!("unreachable");
+                }
+            }
+            let instruction = Instruction::new(Operation::Set(Set{name, size, value}));
             instruction
         } else {
             panic!("Unimplemented instruction")
@@ -71,15 +103,11 @@ fn get_location(loc: &str) -> Location {
     }
 }
 
-fn get_numbers(arg1: &str, arg2: &str) -> (u128, u128) {
-    let mut value: u128 = 0;
-    let mut address: u128 = 0;
-    if arg1.starts_with('$') {
-        address = arg1.split_at(1).1.parse::<u128>().unwrap();
-        value = arg2.parse::<u128>().unwrap();
-    } else {
-        value = arg1.parse::<u128>().unwrap();
-        address = arg2.split_at(1).1.parse::<u128>().unwrap();
+fn get_size(size: &str) -> Size {
+    match size {
+        "byte" => Size::Byte,
+        "word" => Size::Word,
+        _ => panic!("unreachable")
     }
-    (value, address)
 }
+

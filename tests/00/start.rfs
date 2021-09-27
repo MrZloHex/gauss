@@ -1,0 +1,2 @@
+add | x: u8, y: u8 | => u8:
+- ret x + y

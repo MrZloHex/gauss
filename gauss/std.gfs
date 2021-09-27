@@ -1,0 +1,10 @@
+; STD
+
+
+display: [ SEQ[10 BYTE] filename | WORD fn_len ] => NULL
+ | BYTE syscall_n: #1		; write
+ | BYTE file_desc: #1 		; 1 - STDOUT
+ | syscall [ syscall_n | file_desc | filename | fn_len ]
+ \_
+
+

@@ -10,13 +10,14 @@ macro_rules! pub_struct {
 
 
 pub enum Operation {
-    Store(Store)
+    Store(Store),
+    Set(Set)
 }
 
 pub_struct!( Store {
     loc: Location,
-    value: u128,
-    address: u128,
+    value: u64,
+    address: u64,
 });
 impl Default for Store {
     fn default() -> Self {
@@ -26,6 +27,17 @@ impl Default for Store {
             address: 0
         }
     }
+}
+
+pub_struct!( Set {
+    name: String,
+    size: Size,
+    value: u64,
+});
+
+pub enum Size {
+    Byte,
+    Word
 }
 
 pub enum Location {
@@ -48,7 +60,8 @@ impl Instruction {
 
 
 pub enum Directive {
-    Heap(u128)
+    Heap(u128),
+    Uses(String)
 }
 
 pub_struct!( ProgrammInfo {

@@ -1,0 +1,14 @@
+!uses <std>
+
+!uses <cli.gfs>
+!uses <file.gfs>
+
+; sequnce - data type that it is a "array" 
+; 
+;
+;
+
+seq[10 byte] filename: @parse_cli
+seq[10 byte] source_code: @load_file [ filename ]
+@std>>display [ source_code ]
+ 
