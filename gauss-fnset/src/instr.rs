@@ -14,80 +14,14 @@ pub_struct!( Function {
     argv: Vec<(Size, String)>,
     argc: usize,
     ret_size: Size,
+    loc_var: Vec<(Size, String)>,
+    loc_var_c: usize,
+    code: Vec<String>,
 }); 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-pub enum Operation {
-    Store(Store),
-    Set(Set)
-}
-
-pub_struct!( Store {
-    loc: Location,
-    value: u64,
-    address: u64,
-});
-impl Default for Store {
-    fn default() -> Self {
-        Store {
-            loc: Location::Heap,
-            value: 0,
-            address: 0
-        }
-    }
-}
-
-pub_struct!( Set {
-    name: String,
-    size: Size,
-    value: u64,
-});
-
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum Size {
     Byte,
     Word
 }
-
-pub enum Location {
-    Heap 
-}
-
-pub_struct!( Instruction {
-    op: Operation,
-});
-impl Instruction {
-    pub fn new(op: Operation) -> Self {
-        Instruction {
-            op
-        }
-    } 
-}
-
-
-
-
-
-pub enum Directive {
-    Heap(u128),
-    Uses(String)
-}
-
-pub_struct!( ProgrammInfo {
-    heap_vol: u128,
-});
-
 
