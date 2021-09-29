@@ -1,7 +1,7 @@
 #[macro_export]
 macro_rules! pub_struct {
     ($name:ident {$($field:ident: $t:ty,)*}) => {
-        //#[derive(Debug, Clone, PartialEq)] // ewww
+        #[derive(Debug, Clone)] // ewww
         pub struct $name {
             $(pub $field: $t),*
         }
@@ -10,18 +10,28 @@ macro_rules! pub_struct {
 
 
 pub_struct!( Function {
-    name: String,
-    argv: Vec<(Size, String)>,
-    argc: usize,
-    ret_size: Size,
-    loc_var: Vec<(Size, String)>,
-    loc_var_c: usize,
-    code: Vec<String>,
+    name: Indent,
+    //argv: Vec<(Size, String)>,
+    //argc: usize,
+    //ret_size: Size,
+    //loc_var: Vec<(Size, String)>,
+    //loc_var_c: usize,
+    //code: Vec<String>,
 }); 
 
+pub_struct!( Argument {
+    name: Indent,
+    size: Size,
+});
+
 #[derive(Debug, Clone)]
+pub struct Indent(pub String);
+
+#[derive(Debug, Clone, Copy)]
 pub enum Size {
     Byte,
     Word
 }
+
+
 
