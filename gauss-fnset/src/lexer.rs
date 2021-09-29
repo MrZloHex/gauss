@@ -27,6 +27,10 @@ fn lex_func(source_code: Vec<String>) -> Vec<Function> {
     let mut Arg: Argument;
 
     let mut parseRet = false;
+    let mut parseSizeRet = false;
+    let mut SizeRet = Size::Byte;
+    let mut SizeRetStr = String::new();
+    let mut pushRet = false;
 
     'line: for (row, line) in source_code.iter().enumerate() {
         if isFunc {
@@ -103,6 +107,27 @@ fn lex_func(source_code: Vec<String>) -> Vec<Function> {
                     }
                 }
 
+                if parseRet {
+                    match symbol {
+                        ' ' | '>' => (),
+                        'A'..='Z' => parseSizeRet = true,
+                        '<' => {
+                            parseSizeRet = false;
+                            pushRet = true;
+                        },
+                        _ => error(0, row, column)
+                    }
+                    if parseSizeRet {
+                        if !(symbol == ' ') {
+                            SizeRetStr.push(symbol);
+                        }
+                    }
+                }
+
+
+
+
+
 
 
 
@@ -122,6 +147,16 @@ fn lex_func(source_code: Vec<String>) -> Vec<Function> {
                     println!("{:?}", Arg);
                     arguments.push(Arg);
                     IndentArg = String::new();
+                }
+
+                if pushRet {
+                    pushRet = false;
+                    match get_size(SizeRetStr) {
+                        Ok(sz) => SizeRet = sz,
+                        Err(_) => error(2, row, column)
+                    }
+                    println!("{:?}", SizeRet);
+                    SizeRetStr = String::new();
                 }
             }
         }
