@@ -1,6 +1,4 @@
 use clap::{load_yaml, App};
-use std::process::Command;
-use std::path::Path;
 
 mod instr;
 

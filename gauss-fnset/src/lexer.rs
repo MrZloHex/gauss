@@ -1,14 +1,30 @@
+#![allow(non_snake_case)]
+#![allow(non_camel_case_types)]
+
+
 use crate::instr::*;
 
-pub fn lex_code(source_code: Vec<String>) -> String {
+
+pub fn lex_code(source_code: Vec<u8>) -> String {
    //let functions = lex_functions(source_code);
    let functions = lex_func(source_code);
    "qwe".to_string()
 }
 
-fn lex_func(source_code: Vec<String>) -> Vec<Function> {
+fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
+    let mut used_chars: [char; 75] = [0 as char; 75];
+    let spec_chars = [':', '#', '[', ']', '|', '\n', '*', '&', '+', '-', '/', '\\', '_'];
+    for (i,c) in ('a'..='z').enumerate() { used_chars[i] = c; }
+    for (i,c) in ('A'..='Z').enumerate() { used_chars[i+26] = c; }
+    for (i,c) in ('0'..='9').enumerate() { used_chars[i+52] = c; }
+    for (i,c) in spec_chars.iter().enumerate() { used_chars[i+62] = *c; }
+  
+    
+
     let mut functions: Vec<Function> = Vec::new();
     let mut arguments: Vec<Argument> = Vec::new();
+
+    let mut checkFunc = false;
 
     let mut isFunc = false;
     let mut pushFuncName = false;
@@ -32,110 +48,280 @@ fn lex_func(source_code: Vec<String>) -> Vec<Function> {
     let mut SizeRetStr = String::new();
     let mut pushRet = false;
 
+    let mut parseCode = false;
+
+    let mut beginOfLine = true;
+
     'line: for (row, line) in source_code.iter().enumerate() {
+        if isFunc {
+            //'sym: for (column, symbol) in (*line).chars().enumerate() {
+            //    if beginOfLine {
+            //        match symbol {
+            //            ' ' => continue 'sym,
+            //            '|' => (),
+            //            '\\' => {
+            //                isFunc = false;
+            //                checkFunc = true;
+            //            },
+            //            '1'..='9' | 'A'..='Z' | 'a'..='z' => beginOfLine = false,
+            //            _ => error(0, row, column),
+            //        }
+            //    } 
+            //    if !beginOfLine {
+            //        //match symbol {
+            //        //    '0'..=':' | 'a'..='z' | 'A'..='Z' | '#' | '*' | '+' | '     
+            //        //}
+            //    }
+            //}
+        } else {
+            //for (column, symbol) in (*line).chars().enumerate() {
+            //    if column == 0 {
+            //        match symbol {
+            //            ';' => continue 'line,
+            //            '|' | '\\' => error(1, row, column),
+            //            'a'..='z' | '0'..='9' => {
+            //                parseIndent = true;
+            //                isFunc = true;
+            //            },
+            //            _ => error(0, row, column)
+            //        }
+            //    } else {
+            //        if !parseIndent && !parseArgs && !parseRet {
+            //            match symbol {
+            //                ' ' => (),
+            //                '[' => parseArgs = true,
+            //                '>' => parseRet = true,
+            //                _ => error(0, row, column)
+            //            }
+            //        }
+            //    }
+            //    
+            //    if parseIndent {
+            //        if symbol == ':' {
+            //            parseIndent = false;
+            //            pushFuncName = true;
+            //        } else {
+            //            indent.push(symbol);
+            //        }
+            //    }
+
+            //    if parseArgs {
+            //        match symbol {
+            //            ' ' | '[' => (),
+            //            'A'..='Z' => parseSizeArg = true,
+            //            'a'..='z' | '0'..='9' => parseIndentArg = true,
+            //            '|' => {
+            //                pushArg = true;
+            //                parseSizeArg = false;
+            //                parseIndentArg = false;
+            //            },
+            //            ']' => {
+            //                pushArg = true;
+            //                parseArgs = false;
+            //                parseSizeArg = false;
+            //                parseIndentArg = false;
+            //            },
+            //            _ => error(0, row, column)
+            //        }
+
+
+            //        if parseSizeArg {
+            //            if symbol == ' ' {
+            //                parseSizeArg = false;
+            //                match get_size(SizeArgStr){
+            //                    Ok(sz) => SizeArg = sz,
+            //                    Err(_) => error(2, row, column),
+            //                }
+            //                //println!("{}", SizeArgStr);
+            //                SizeArgStr = String::new()
+            //            } else {
+            //                SizeArgStr.push(symbol);
+            //            }
+            //        }
+            //        if parseIndentArg {
+            //            if !(symbol == ' ') {
+            //                IndentArg.push(symbol);
+            //            }
+            //        }
+            //    }
+
+            //    if parseRet {
+            //        match symbol {
+            //            ' ' | '>' => (),
+            //            'A'..='Z' => parseSizeRet = true,
+            //            '<' => {
+            //                parseSizeRet = false;
+            //                pushRet = true;
+            //            },
+            //            _ => error(0, row, column)
+            //        }
+            //        if parseSizeRet {
+            //            if !(symbol == ' ') {
+            //                SizeRetStr.push(symbol);
+            //            }
+            //        }
+            //    }
+
+
+
+            //    if pushFuncName {
+            //        pushFuncName = false;
+            //        FuncName = indent;
+            //        indent = String::new();
+            //        println!("{}", FuncName);
+            //    }
+
+            //    if pushArg {
+            //        pushArg = false;
+            //        Arg = Argument {
+            //            name: Indent(IndentArg),
+            //            size: SizeArg,
+            //        };
+            //        println!("{:?}", Arg);
+            //        arguments.push(Arg);
+            //        IndentArg = String::new();
+            //    }
+
+            //    if pushRet {
+            //        pushRet = false;
+            //        match get_size(SizeRetStr) {
+            //            Ok(sz) => SizeRet = sz,
+            //            Err(_) => error(2, row, column)
+            //        }
+            //        println!("{:?}", SizeRet);
+            //        SizeRetStr = String::new();
+            //    }
+            //}
+        }
+    }
+
+    let mut row: usize = 1;
+    let mut column: usize = 0;
+
+
+    let mut comment = false;
+
+    for sym_code in source_code {
+        column += 1;
+        if sym_code == 0xA {
+            if column == 1 { 
+                column = 0;
+                row += 1;
+                continue
+            }
+            column = 0;
+            row += 1;
+        }
+
+        let symbol: char = sym_code as char;
+        
+        if symbol == ' ' { continue }
+
+        if symbol == ';' {
+            comment = true;
+            continue
+        }
+        if comment {
+            if sym_code == 0xA {
+                comment = false;
+                continue
+            } else {
+                continue
+            }
+        }
+
+
+        if !used_chars.contains(&symbol) {
+            error(0, row, column, symbol)
+        }
+
         if isFunc {
 
         } else {
-            'sym: for (column, symbol) in (*line).chars().enumerate() {
-                if column == 0 || column == 1 {
-                    match symbol {
-                        ';' => continue 'line,
-                        '|' | '\\' => error(1, row, column),
-                        'a'..='z' | '0'..='9' => {
-                            parseIndent = true;
-                            isFunc = true;
-                        },
-                        _ => error(0, row, column)
-                    }
+            if sym_code == 0xA { continue }
+            if !parseRet && !parseArgs && !parseIndent {
+                match symbol {
+                    'B'|'W'|'N'|'D' => parseRet = true,
+                    'a'..='z'|'0'..='9' => parseIndent = true,
+                    '[' => parseArgs = true,
+                    _ => unreachable!()
+                }
+            }
+
+
+            if parseRet {
+                match symbol {
+                    'a'..='z'|'0'..='9' => {
+                        parseRet = false;
+                        pushRet = true;
+                        parseIndent = true;
+                    },
+                    'A'..='Z' => (),
+                    _ => unreachable!()
+                }
+                if !pushRet {
+                    SizeRetStr.push(symbol)
                 } else {
-                    if !parseIndent && !parseArgs && !parseRet {
-                        match symbol {
-                            ' ' => (),
-                            '[' => parseArgs = true,
-                            '>' => parseRet = true,
-                            _ => error(0, row, column)
-                        }
+                    pushRet = false;
+                    match get_size(SizeRetStr) {
+                        Ok(sz) => SizeRet = sz,
+                        Err(_) => error(2, row, column, symbol)
                     }
+                    SizeRetStr = String::new();
+                    println!("{:?}", SizeRet);
                 }
-                
-                if parseIndent {
-                    if symbol == ':' {
-                        parseIndent = false;
-                        pushFuncName = true;
-                    } else {
-                        indent.push(symbol);
-                    }
-                }
+            }
 
-                if parseArgs {
-                    match symbol {
-                        ' ' | '[' => (),
-                        'A'..='Z' => parseSizeArg = true,
-                        'a'..='z' | '0'..='9' => parseIndentArg = true,
-                        '|' => {
-                            pushArg = true;
-                            parseSizeArg = false;
-                            parseIndentArg = false;
-                        },
-                        ']' => {
-                            pushArg = true;
-                            parseArgs = false;
-                            parseSizeArg = false;
-                            parseIndentArg = false;
-                        },
-                        _ => error(0, row, column)
-                    }
-
-
-                    if parseSizeArg {
-                        if symbol == ' ' {
-                            parseSizeArg = false;
-                            match get_size(SizeArgStr){
-                                Ok(sz) => SizeArg = sz,
-                                Err(_) => error(2, row, column),
-                            }
-                            //println!("{}", SizeArgStr);
-                            SizeArgStr = String::new()
-                        } else {
-                            SizeArgStr.push(symbol);
-                        }
-                    }
-                    if parseIndentArg {
-                        if !(symbol == ' ') {
-                            IndentArg.push(symbol);
-                        }
-                    }
-                }
-
-                if parseRet {
-                    match symbol {
-                        ' ' | '>' => (),
-                        'A'..='Z' => parseSizeRet = true,
-                        '<' => {
-                            parseSizeRet = false;
-                            pushRet = true;
-                        },
-                        _ => error(0, row, column)
-                    }
-                    if parseSizeRet {
-                        if !(symbol == ' ') {
-                            SizeRetStr.push(symbol);
-                        }
-                    }
-                }
-
-
-
-
-
-
-
-
-                if pushFuncName {
-                    pushFuncName = false;
+            if parseIndent {
+                if symbol == ':' {
+                    parseIndent = false;
                     FuncName = indent;
                     indent = String::new();
                     println!("{}", FuncName);
+                } else {
+                    indent.push(symbol);
+                }
+            }
+
+            if parseArgs {
+                match symbol {
+                    '[' => (),
+                    'A'..='Z' => parseSizeArg = true,
+                    'a'..='z'|'0'..='9' => parseIndentArg = true,
+                    '|' => { 
+                        pushArg = true;
+                        parseIndentArg = false;
+                    },
+                    ']' => {
+                        pushArg = true;
+                        parseArgs = false;
+                        parseIndentArg = false;
+                        isFunc = true;
+                    },
+                    _ => unreachable!()
+                }
+                if parseSizeArg {
+                    match symbol {
+                        'a'..='z'|'0'..='9' => {
+                            parseSizeArg = false;
+                            parseIndentArg = true;
+                        },
+                        'A'..='Z' => (),
+                        _ => unreachable!()
+                    }
+                    if !parseIndentArg {
+                        SizeArgStr.push(symbol);
+                    } else {
+                        match get_size(SizeArgStr) {
+                            Ok(sz) => SizeArg = sz,
+                            Err(_) => error(2, row, column, symbol),
+                        }
+                        SizeArgStr = String::new();
+                    }
+                }
+
+                if parseIndentArg {
+                    IndentArg.push(symbol);
                 }
 
                 if pushArg {
@@ -148,18 +334,17 @@ fn lex_func(source_code: Vec<String>) -> Vec<Function> {
                     arguments.push(Arg);
                     IndentArg = String::new();
                 }
-
-                if pushRet {
-                    pushRet = false;
-                    match get_size(SizeRetStr) {
-                        Ok(sz) => SizeRet = sz,
-                        Err(_) => error(2, row, column)
-                    }
-                    println!("{:?}", SizeRet);
-                    SizeRetStr = String::new();
-                }
             }
         }
+
+
+
+
+
+
+
+
+
     }
 
 
@@ -174,7 +359,8 @@ fn lex_func(source_code: Vec<String>) -> Vec<Function> {
  *  - 1: unspecifed function signature
  *  - 2: unknown variable size
  */
-fn error(err_code: u8, row: usize, column: usize) {
+fn error(err_code: u8, row: usize, column: usize, symbol: char) {
+    println!("{}", symbol as u8);
     match err_code {
         0 => eprintln!("Unknown token at {}:{}", row, column),
         1 => eprintln!("Unspecifed function signature at {}:{}", row, column),
