@@ -5,20 +5,20 @@ BYTE add: [ BYTE num1 | BYTE num2 ]
  | RET [ res ]
  \_
 
-;for_loop: [BYTE *start | BYTE finish] > BYTE
-; | BYTE loc_var: #0
-; |
-; | FOR [ *start | *start < finish | *start++ ]
-; |  | ; here we are counting 
-; |  | *loc_var = *loc_var + *start
-; |  \
-; | RET [loc_var]
-; \
-;
-;is_zero: [BYTE check] > BYTE
-; | IF [ check == #0 ]
-; |  | RET [ #1 ]
-; | ELSE
-; |  | RET [ #0 ]
-; |  \_
-; \_
+BYTE for_loop: [BYTE *start | BYTE finish]
+ | BYTE loc_var: #0
+ |
+ | ;FOR [ *start | *start < finish | *start++ ]
+ |  | ; here we are counting 
+ | ; | *loc_var = *loc_var + *start
+ |  \
+ | RET [loc_var]
+ \
+
+BYTE is_zero: [BYTE check]
+ | ;IF [ check == #0 ]
+ |  | RET [ #1 ]
+ | ELSE
+ |  | RET [ #0 ]
+ |  \_
+ \_

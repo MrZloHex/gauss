@@ -236,7 +236,7 @@ fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
         }
 
         if isFunc {
-
+            if symbol == '_' { isFunc = false; }
         } else {
             if sym_code == 0xA { continue }
             if !parseRet && !parseArgs && !parseIndent {
