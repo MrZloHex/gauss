@@ -7,7 +7,7 @@ BYTE eight: [ ]
  \_
 
 BYTE for_loop: [BYTE start | BYTE finish]
- | BYTE locvar: #987
+ | BYTE locvar: #250
  |
  | RET [locvar]
  \_
