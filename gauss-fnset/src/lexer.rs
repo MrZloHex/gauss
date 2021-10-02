@@ -1,15 +1,16 @@
-#![allow(non_snake_case_names)]
-#![allow(non_camel_case_types)]
+#![allow(non_snake_case)]
 
 
 use crate::instr::*;
 
 
 pub fn lex_code(source_code: Vec<u8>) -> String {
-   //let functions = lex_functions(source_code);
-   let functions = lex_func(source_code);
-   println!("{:?}", functions);
-   "qwe".to_string()
+    //let functions = lex_functions(source_code);
+    let functions = lex_func(source_code);
+    for function in functions {
+        println!("{:?}", function);
+    }
+    "qwe".to_string()
 }
 
 fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
@@ -25,12 +26,9 @@ fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
     let mut functions: Vec<Function> = Vec::new();
     let mut arguments: Vec<Argument> = Vec::new();
 
-    let mut checkFunc = false;
-
     let mut isFunc = false;
     let mut pushFunc = false;
 
-    let mut pushFuncName = false;
     let mut FuncName = String::new();
 
     let mut parseIndent = false;
@@ -46,14 +44,9 @@ fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
     let mut Arg: Argument;
 
     let mut parseRet = false;
-    let mut parseSizeRet = false;
     let mut SizeRet = Size::Byte;
     let mut SizeRetStr = String::new();
     let mut pushRet = false;
-
-    let mut parseCode = false;
-
-    let mut beginOfLine = true;
 
 
     let mut row: usize = 1;
@@ -61,6 +54,24 @@ fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
 
 
     let mut comment = false;
+
+
+    let mut pushVar = false;
+
+    let mut parseSizeVar = false;
+    let mut pushSizeVar = false;
+    let mut SizeVarStr = String::new();
+    let mut SizeVar = Size::Byte;
+
+    let mut parseIndentVar = false;
+    let mut VarName = String::new();
+
+    let mut parseValueVar = false;
+    let mut pushValVar = false;
+    let mut ValVar = ValueSize::Byte(0);
+    let mut ValVarStr = String::new();
+
+    let mut parseRetExpr = false;
 
     for sym_code in source_code {
         column += 1;
@@ -97,7 +108,87 @@ fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
         }
 
         if isFunc {
-            if symbol == '_' { isFunc = false; pushFunc = true; }
+            if symbol == '|' { continue }
+            if !parseSizeVar && !parseRetExpr && !parseIndentVar && !parseValueVar {
+                match symbol {
+                    'B'|'W'|'N'|'D' => parseSizeVar = true,
+                    'R' => parseRetExpr = true,
+                    'a'..='z'|'0'..='9' => parseIndentVar = true,
+                    '#' => parseValueVar = true,
+                    '_' => {
+                        isFunc = false;
+                        pushFunc = true;
+                    },
+                    '\n' => (),
+                    _ => unreachable!(symbol),
+                }
+            }
+
+            if parseSizeVar {
+                match symbol {
+                    'a'..='z'|'0'..='9' => {
+                        parseSizeVar = false;
+                        pushSizeVar = true;
+                        parseIndentVar = true;
+                    },
+                    'A'..='Z' => (),
+                    _ => unreachable!()
+                }
+                if !pushSizeVar {
+                    SizeVarStr.push(symbol)
+                } else {
+                    pushSizeVar = false;
+                    match get_size(SizeVarStr) {
+                        Ok(sz) => SizeVar = sz,
+                        Err(_) => error(2, row, column, symbol)
+                    }
+                    println!("{:?}", SizeVar);
+                    SizeVarStr = String::new();
+                }
+            }
+
+            if parseIndentVar {
+                if symbol == ':' {
+                    parseIndentVar = false;
+                    VarName = indent;
+                    indent = String::new();
+                    println!("{}", VarName);
+                } else {
+                    indent.push(symbol);
+                }
+            }
+
+            if parseValueVar {
+                match symbol {
+                    '#' => continue,
+                    '0'..='9' => (),
+                    '\n' => {
+                        parseValueVar = false;
+                        pushVar = true;
+                        pushValVar = true;
+                    },
+                    _ => unreachable!(symbol)
+                }
+                if pushValVar {
+                    ValVar = match SizeVar {
+                        Size::Byte => {
+                            match ValVarStr.parse::<u8>() {
+                                Ok(val) => ValueSize::Byte(val),
+                                Err(_) => { error(3, row, column, symbol); ValueSize::Byte(0) }
+                            }
+                        },
+                        Size::Word => {
+                            match ValVarStr.parse::<u16>() {
+                                Ok(val) => ValueSize::Word(val),
+                                Err(_) => { error(3, row, column, symbol); ValueSize::Word(0) }
+                            }
+                        }
+                    };
+                    println!("{:?}", ValVar);
+                } else {
+                    ValVarStr.push(symbol);
+                }
+            }
         } else {
             if sym_code == 0xA { continue }
             if !parseRet && !parseArgs && !parseIndent {
@@ -241,6 +332,7 @@ fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
  *  - 0: unknown token
  *  - 1: unspecifed function signature
  *  - 2: unknown variable size
+ *  - 3: failed to parse immediate value
  */
 fn error(err_code: u8, row: usize, column: usize, symbol: char) {
     println!("{}", symbol as u8);
@@ -248,6 +340,7 @@ fn error(err_code: u8, row: usize, column: usize, symbol: char) {
         0 => eprintln!("Unknown token at {}:{}", row, column),
         1 => eprintln!("Unspecifed function signature at {}:{}", row, column),
         2 => eprintln!("Unknown variable size at {}:{}", row, column),
+        3 => eprintln!("Failed to parse immediate value at {}:{}", row, column),
         _ => panic!("Unreachable error code")
     }
     std::process::exit(1);

@@ -33,5 +33,11 @@ pub enum Size {
     Word
 }
 
+#[derive(Debug, Clone, Copy)]
+pub enum ValueSize {
+    Byte(u8),
+    Word(u16)
+}
+
 
 
