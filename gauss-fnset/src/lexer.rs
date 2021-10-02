@@ -387,7 +387,11 @@ fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
             variables = Vec::new();
             RetVar = String::new();
 
-            functions.push(func);
+            if check_func(func.clone()) {
+                functions.push(func);
+            } else {
+                error(4, row, column, symbol);
+            }
         }
 
 
@@ -410,6 +414,7 @@ fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
  *  - 1: unspecifed function signature
  *  - 2: unknown variable size
  *  - 3: failed to parse immediate value
+ *  - 4: incorrect function
  */
 fn error(err_code: u8, row: usize, column: usize, symbol: char) {
     println!("{}", symbol as u8);
@@ -418,6 +423,7 @@ fn error(err_code: u8, row: usize, column: usize, symbol: char) {
         1 => eprintln!("Unspecifed function signature at {}:{}", row, column),
         2 => eprintln!("Unknown variable size at {}:{}", row, column),
         3 => eprintln!("Failed to parse immediate value at {}:{}", row, column),
+        4 => eprintln!("incorrect function ar {}:{}", row, column),
         _ => panic!("Unreachable error code")
     }
     std::process::exit(1);
@@ -431,3 +437,31 @@ fn get_size(size_str: String) -> Result<Size, ()> {
     }
 }
 
+
+fn check_func(function: Function) -> bool {
+    if let Some(vars) = function.vars {
+        for var in vars {
+            if var.name.0 == function.ret_var.0 {
+                if var.size == function.ret_size {
+                    return true
+                } else {
+                    return false
+                }
+            }
+        }
+        false
+    } else if let Some(args) = function.args {
+        for arg in args {
+            if arg.name.0 == function.ret_var.0 {
+                if arg.size == function.ret_size {
+                    return true
+                } else {
+                    return false
+                }
+            }
+        }
+        false
+    } else {
+        return false
+    }
+}

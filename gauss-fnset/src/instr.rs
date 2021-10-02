@@ -26,7 +26,7 @@ pub_struct!( Argument {
 #[derive(Debug, Clone)]
 pub struct Indent(pub String);
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Size {
     Byte,
     Word

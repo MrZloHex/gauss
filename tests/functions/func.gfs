@@ -1,21 +1,10 @@
-; simple function
+; simple functions
 
 BYTE eight: [ ]
  | BYTE res: #8
- | WORD word: #1234
  | RET [ res ]
  \_
 
-BYTE for_loop: [BYTE start | BYTE finish]
- | BYTE locvar: #250
- |
- | RET [locvar]
+WORD retsame: [ WORD number ]
+ | RET [number]
  \_
-;
-;BYTE iszero: [BYTE check]
-; | ;IF [ check == #0 ]
-; | ; | RET [ #1 ]
-; | ;ELSE
-; | ; | RET [ #0 ]
-; | ; \_
-; \_
