@@ -68,7 +68,7 @@ fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
 
     let mut parseValueVar = false;
     let mut pushValVar = false;
-    let mut ValVar = ValueSize::Byte(0);
+    let mut ValVar = Value::Byte(0);
     let mut ValVarStr = String::new();
 
     let mut parseRetExpr = false;
@@ -173,14 +173,14 @@ fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
                     ValVar = match SizeVar {
                         Size::Byte => {
                             match ValVarStr.parse::<u8>() {
-                                Ok(val) => ValueSize::Byte(val),
-                                Err(_) => { error(3, row, column, symbol); ValueSize::Byte(0) }
+                                Ok(val) => Value::Byte(val),
+                                Err(_) => { error(3, row, column, symbol); Value::Byte(0) }
                             }
                         },
                         Size::Word => {
                             match ValVarStr.parse::<u16>() {
-                                Ok(val) => ValueSize::Word(val),
-                                Err(_) => { error(3, row, column, symbol); ValueSize::Word(0) }
+                                Ok(val) => Value::Word(val),
+                                Err(_) => { error(3, row, column, symbol); Value::Word(0) }
                             }
                         }
                     };

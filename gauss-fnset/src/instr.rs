@@ -34,10 +34,15 @@ pub enum Size {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub enum ValueSize {
+pub enum Value {
     Byte(u8),
     Word(u16)
 }
 
+pub_struct!( Variable {
+    name: Indent,
+    size: Size,
+    value: Value,
+});
 
 
