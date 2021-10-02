@@ -14,9 +14,8 @@ pub_struct!( Function {
     args: Option<Vec<Argument>>,
     argc: usize,
     ret_size: Size,
-    //loc_var: Vec<(Size, String)>,
-    //loc_var_c: usize,
-    //code: Vec<String>,
+    vars: Option<Vec<Variable>>,
+    ret_var: Indent,
 }); 
 
 pub_struct!( Argument {

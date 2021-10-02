@@ -25,8 +25,10 @@ fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
 
     let mut functions: Vec<Function> = Vec::new();
     let mut arguments: Vec<Argument> = Vec::new();
+    let mut variables: Vec<Variable> = Vec::new();
 
     let mut isFunc = false;
+    let mut isFuncEnd = false;
     let mut pushFunc = false;
 
     let mut FuncName = String::new();
@@ -72,6 +74,9 @@ fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
     let mut ValVarStr = String::new();
 
     let mut parseRetExpr = false;
+    let mut parseRetVar = false;
+    let mut pushRetExpr = false;
+    let mut RetVar = String::new();
 
     for sym_code in source_code {
         column += 1;
@@ -108,17 +113,22 @@ fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
         }
 
         if isFunc {
+            if isFuncEnd {
+                if symbol == '_' {
+                    isFunc = false;
+                    isFuncEnd = false;
+                    pushFunc = true;
+                }
+            }
+
             if symbol == '|' { continue }
-            if !parseSizeVar && !parseRetExpr && !parseIndentVar && !parseValueVar {
+            if isFunc && !parseSizeVar && !parseRetExpr && !parseIndentVar && !parseValueVar && !isFuncEnd {
                 match symbol {
                     'B'|'W'|'N'|'D' => parseSizeVar = true,
                     'R' => parseRetExpr = true,
                     'a'..='z'|'0'..='9' => parseIndentVar = true,
                     '#' => parseValueVar = true,
-                    '_' => {
-                        isFunc = false;
-                        pushFunc = true;
-                    },
+                    '\\' => isFuncEnd = true,
                     '\n' => (),
                     _ => unreachable!(symbol),
                 }
@@ -142,7 +152,6 @@ fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
                         Ok(sz) => SizeVar = sz,
                         Err(_) => error(2, row, column, symbol)
                     }
-                    println!("{:?}", SizeVar);
                     SizeVarStr = String::new();
                 }
             }
@@ -152,7 +161,6 @@ fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
                     parseIndentVar = false;
                     VarName = indent;
                     indent = String::new();
-                    println!("{}", VarName);
                 } else {
                     indent.push(symbol);
                 }
@@ -184,10 +192,49 @@ fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
                             }
                         }
                     };
-                    println!("{:?}", ValVar);
                 } else {
                     ValVarStr.push(symbol);
                 }
+            }
+
+            if parseRetExpr {
+                if !parseRetVar {
+                    match symbol {
+                        'R'|'E'|'T' => (),
+                        '[' => parseRetVar = true,
+                        _ => unreachable!()
+                    }
+                } else {
+                    match symbol {
+                        'a'..='z'|'0'..='9' => (),
+                        ']' => {
+                            parseRetVar = false;
+                            parseRetExpr = false;
+                            pushRetExpr = true;
+                        },
+                        _ => unreachable!()
+                    }
+                    if pushRetExpr {
+                        pushRetExpr = false;
+                        RetVar = indent;
+                        indent = String::new();
+                    } else {
+                        indent.push(symbol);
+                    }
+                }
+            }
+
+
+            if pushVar {
+                pushVar = false;
+                let var = Variable {
+                    name: Indent(VarName),
+                    size: SizeVar,
+                    value: ValVar,
+                };
+                variables.push(var);
+
+                VarName = String::new();
             }
         } else {
             if sym_code == 0xA { continue }
@@ -292,23 +339,51 @@ fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
         if pushFunc {
             pushFunc = false;
             let func = if arguments.len() > 0 {
-                Function {
-                    name: Indent(FuncName),
-                    argc: arguments.len(),
-                    args: Some(arguments),
-                    ret_size: SizeRet
+                if variables.len() > 0 {
+                    Function {
+                        name: Indent(FuncName),
+                        argc: arguments.len(),
+                        args: Some(arguments),
+                        ret_size: SizeRet,
+                        vars: Some(variables),
+                        ret_var: Indent(RetVar)
+                    }
+                } else {
+                    Function {
+                        name: Indent(FuncName),
+                        argc: arguments.len(),
+                        args: Some(arguments),
+                        ret_size: SizeRet,
+                        vars: None,
+                        ret_var: Indent(RetVar)
+                    }
                 }
             } else {
-                Function {
-                    name: Indent(FuncName),
-                    argc: arguments.len(),
-                    args: None,
-                    ret_size: SizeRet
+                if variables.len() > 0 {
+                    Function {
+                        name: Indent(FuncName),
+                        argc: arguments.len(),
+                        args: None,
+                        ret_size: SizeRet,
+                        vars: Some(variables),
+                        ret_var: Indent(RetVar)
+                    }
+                } else {
+                    Function {
+                        name: Indent(FuncName),
+                        argc: arguments.len(),
+                        args: None,
+                        ret_size: SizeRet,
+                        vars: None,
+                        ret_var: Indent(RetVar)
+                    }
                 }
             }; 
 
             FuncName = String::new();
             arguments = Vec::new();
+            variables = Vec::new();
+            RetVar = String::new();
 
             functions.push(func);
         }
