@@ -11,7 +11,7 @@ macro_rules! pub_struct {
 
 pub_struct!( Function {
     name: Indent,
-    args: Vec<Argument>,
+    args: Option<Vec<Argument>>,
     argc: usize,
     ret_size: Size,
     //loc_var: Vec<(Size, String)>,

@@ -1,7 +1,7 @@
 ; simple function
 
-BYTE add: [ BYTE num1 | BYTE num2 ]
- | BYTE res: *num1 + *num2
+BYTE eight: [ ]
+ | BYTE res: #8
  | RET [ res ]
  \_
 
