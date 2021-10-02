@@ -24,12 +24,19 @@ def load_file(filename: str) -> list:
 def spawn_func(func_set: str):
     subprocess.run(["./gauss-fnset/target/release/gauss-fnset","--input",func_set])
 
+def spawn_instr(instr_set: str, of_set: str):
+    subprocess.run(["./gauss-iset/target/release/gauss-iset","--is",instr_set,"--ofs",of_set])
+
 def parse_instr(code: list):
     for line in code:
         tokens = line.split()
         if tokens[0] == "function":
             func_set = tokens[1]
             spawn_func(func_set)
+        elif tokens[0] == "compile":
+            instr_set = tokens[1]
+            of_set = tokens[2]
+            spawn_instr(instr_set, of_set)
         else:
             assert False, "Uniplemented method"
 
@@ -37,7 +44,10 @@ def precompile():
     os.chdir("gauss-fnset")
     fnset = subprocess.run(["cargo","build","--release"])
     os.chdir("..")
-    if fnset.returncode != 0:
+    os.chdir("gauss-iset")
+    iset = subprocess.run(["cargo","build","--release"])
+    os.chdir("..")
+    if fnset.returncode != 0 or iset.returncode != 0:
         print("Can't compile compiler")
         exit(1)
 
