@@ -2,17 +2,15 @@
 
 BYTE eight: [ ]
  | BYTE res: #8
+ | WORD word: #1234
  | RET [ res ]
  \_
 
-;BYTE for_loop: [BYTE start | BYTE finish]
-; | BYTE locvar: #0
-; |
-; | ;FOR [ *start | *start < finish | *start++ ]
-; |  | ; here we are counting 
-; | ; | *loc_var = *loc_var + *start
-; | RET [locvar]
-; \_
+BYTE for_loop: [BYTE start | BYTE finish]
+ | BYTE locvar: #987
+ |
+ | RET [locvar]
+ \_
 ;
 ;BYTE iszero: [BYTE check]
 ; | ;IF [ check == #0 ]

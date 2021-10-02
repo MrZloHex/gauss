@@ -178,6 +178,7 @@ fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
                     _ => unreachable!(symbol)
                 }
                 if pushValVar {
+                    pushValVar = false;
                     ValVar = match SizeVar {
                         Size::Byte => {
                             match ValVarStr.parse::<u8>() {
@@ -192,6 +193,7 @@ fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
                             }
                         }
                     };
+                    ValVarStr = String::new();
                 } else {
                     ValVarStr.push(symbol);
                 }
