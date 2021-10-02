@@ -1,7 +1,9 @@
+use serde::Serialize;
+
 #[macro_export]
 macro_rules! pub_struct {
     ($name:ident {$($field:ident: $t:ty,)*}) => {
-        #[derive(Debug, Clone)] // ewww
+        #[derive(Debug, Clone, Serialize)] // ewww
         pub struct $name {
             $(pub $field: $t),*
         }
@@ -23,16 +25,16 @@ pub_struct!( Argument {
     size: Size,
 });
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Indent(pub String);
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize)]
 pub enum Size {
     Byte,
     Word
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Serialize)]
 pub enum Value {
     Byte(u8),
     Word(u16)

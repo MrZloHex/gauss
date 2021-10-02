@@ -3,7 +3,7 @@ use clap::{load_yaml, App};
 mod instr;
 
 mod file;
-use file::load_file;
+use file::*;
 
 mod lexer;
 use lexer::lex_code;
@@ -31,6 +31,8 @@ fn main() {
 
     let code = load_file(input_filename);
     let func_or = lex_code(code);
+    print!("{}", func_or);
+    store_file(func_or, object_filename);
 
     //let main_is = parse_code(load_file(input_filename));
     //generate_assembler(main_is, asm_filename.clone());

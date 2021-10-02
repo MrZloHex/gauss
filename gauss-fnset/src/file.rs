@@ -12,3 +12,7 @@ pub fn load_file(filename: String) -> Vec<u8> {
     buffer
 }
 
+pub fn store_file(content: String, filename: String) {
+    fs::write(filename, content).expect("Unable to write file");
+}
+

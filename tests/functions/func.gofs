@@ -1,0 +1,29 @@
+[
+	(
+		name: ("eight"),
+		args: None,
+		argc: 0,
+		ret_size: Byte,
+		vars: Some([
+			(
+				name: ("res"),
+				size: Byte,
+				value: Byte(8),
+			),
+		]),
+		ret_var: ("res"),
+	),
+	(
+		name: ("retsame"),
+		args: Some([
+			(
+				name: ("number"),
+				size: Word,
+			),
+		]),
+		argc: 1,
+		ret_size: Word,
+		vars: None,
+		ret_var: ("number"),
+	),
+]
