@@ -2,19 +2,14 @@
 
 
 use crate::instr::*;
-use ron::ser::{to_string_pretty, PrettyConfig};
 
 
-pub fn lex_code(source_code: Vec<u8>) -> String {
-    //let functions = lex_functions(source_code);
+pub fn lex_code(source_code: Vec<u8>) -> Vec<Function> {
     let functions = lex_func(source_code);
     //for function in functions {
     //    println!("{:?}", function);
     //}
-    let pretty = PrettyConfig::new()
-        .with_new_line("\n".to_owned())
-        .with_indentor("\t".to_owned());
-    to_string_pretty(&functions, pretty).expect("Serialization failed")
+    functions
 }
 
 fn lex_func(source_code: Vec<u8>) -> Vec<Function> {

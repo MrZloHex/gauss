@@ -1,0 +1,20 @@
+name: gauss-iset
+version: "0.1.0"
+author: MrZloHex <zlo.alex.it@gmail.com>
+about: Compilator for IR of instructions set of `gauss` programming language
+args:
+    - is:
+       short: i
+       long: is
+       help: Filename with instruction set (extension should be `.gis`)
+       required: true
+       takes_value: true
+       value_name: IS_FILE
+    - ofs:
+       short: f
+       long: ofs
+       help: Filename with functions in RON (`.gofs`)
+       required: true
+       takes_value: true
+       value_name: OFS_FILE
+

@@ -1,2 +1,2 @@
 function /home/zs/rimfupl/tests/functions/func.gfs
-compile /home/zs/rimfupl/tests/functions/func.gis /home/zs/rimfupl/tests/functions/func.gofs
+instruction /home/zs/rimfupl/tests/functions/func.gis /home/zs/rimfupl/tests/functions/func.gofs

@@ -33,7 +33,7 @@ def parse_instr(code: list):
         if tokens[0] == "function":
             func_set = tokens[1]
             spawn_func(func_set)
-        elif tokens[0] == "compile":
+        elif tokens[0] == "instruction":
             instr_set = tokens[1]
             of_set = tokens[2]
             spawn_instr(instr_set, of_set)
