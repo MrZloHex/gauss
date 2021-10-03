@@ -1,7 +1,9 @@
-!uses <func.gfs>
+!USES <eight>
+; !USES <retsame | five>
+; comment
 
-BYTE a: #35
-BYTE b: #34
-;  summary of 2 numbers
-BYTE sum: @add [ a | b ]
+WORD myvar: #1234
+BYTE eight1: @eight[ ]
 
+; BYTE eight2
+; eight2 = @eight[ ]

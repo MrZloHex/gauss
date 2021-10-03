@@ -8,3 +8,8 @@ BYTE eight: [ ]
 WORD retsame: [ WORD number ]
  | RET [number]
  \_
+
+BYTE five: [ ]
+ | BYTE res: #5
+ | RET [ res ]
+ \_

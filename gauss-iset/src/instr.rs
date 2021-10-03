@@ -46,3 +46,13 @@ pub_struct!( Variable {
     value: Value,
 });
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum Directive {
+    Use(Vec<Indent>),
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum Instruction {
+    Directive(Directive),
+    Variable(Variable)
+}

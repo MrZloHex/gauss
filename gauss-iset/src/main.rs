@@ -5,8 +5,8 @@ mod instr;
 mod file;
 use file::*;
 
-//mod lexer;
-//use lexer::lex_code;
+mod lexer;
+use lexer::lex_code;
 
 fn main() {
     // Allocating memory for files' names
@@ -41,6 +41,10 @@ fn main() {
     for function in functions {
         println!("{:?}", function)
     }
+
+    let code = load_file(is_filename);
+    let instructions  = lex_code(code);
+    
     //let code = load_file(input_filename);
     //let func_or = lex_code(code);
     //print!("{}", func_or);
