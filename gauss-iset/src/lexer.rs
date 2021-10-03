@@ -39,8 +39,12 @@ fn lex_instr(source_code: Vec<u8>) -> (Vec<Instruction>, Option<Vec<Directive>>)
     let mut pushDirArg = false;
     let mut DirArgs: Vec<String> = Vec::new();
 
-
     let mut isVariable = false;
+    let mut parseSizeVar = false;
+    let mut pushSizeVar = false;
+    let mut parseIndentVar = false;
+    let mut SizeVarStr = String::new();
+    let mut SizeVar = Size::Byte(0);
 
     let mut column: usize = 0;
     let mut row: usize = 1;
@@ -140,14 +144,44 @@ fn lex_instr(source_code: Vec<u8>) -> (Vec<Instruction>, Option<Vec<Directive>>)
                 DirStr = String::new();
                 DirArgs = Vec::new();
             }
-        } else if isVariable {
-
         } else {
             if symbol == '\n' { continue }
             match symbol {
                 '!' => isDirective = true,
                 'B'|'W' => isVariable = true,
                 _ => unreachable!(symbol)
+            }
+        }
+
+        if isVariable {
+            if !parseSizeVar {
+                match symbol {
+                    'B'|'W'|'D' => parseSizeVar = true,
+                    _ => unreachable!(symbol)
+                }
+            }
+
+            if parseSizeVar {
+                match symbol {
+                    'a'..='z'|'0'..='9' => {
+                        parseSizeVar = false;
+                        pushSizeVar = true;
+                        parseIndentVar = true;
+                    },
+                    'A'..='Z' => (),
+                    _ => unreachable!()
+                }
+                if !pushSizeVar {
+                    SizeVarStr.push(symbol)
+                } else {
+                    pushSizeVar = false;
+                    match get_size(SizeVarStr) {
+                        Ok(sz) => SizeVar = sz,
+                        Err(_) => error(2, row, column, symbol)
+                    }
+                    SizeVarStr = String::new();
+                    println!("{:?}", SizeVar);
+                }
             }
         }
     }
