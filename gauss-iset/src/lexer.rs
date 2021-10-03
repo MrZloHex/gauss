@@ -16,8 +16,8 @@ pub fn lex_code(source_code: Vec<u8>) -> (Vec<Instruction>, Option<Vec<Directive
 }
 
 fn lex_instr(source_code: Vec<u8>) -> (Vec<Instruction>, Option<Vec<Directive>>) {
-    let mut used_chars: [char; 75] = [0 as char; 75];
-    let spec_chars = [':', '#', '[', ']', '!', '\n', '*', '&', '+', '-', '<', '>', '@'];
+    let mut used_chars: [char; 76] = [0 as char; 76];
+    let spec_chars = [':', '#', '[', ']', '!', '\n', '*', '&', '+', '-', '<', '>', '@', '|'];
     for (i,c) in ('a'..='z').enumerate() { used_chars[i] = c; }
     for (i,c) in ('A'..='Z').enumerate() { used_chars[i+26] = c; }
     for (i,c) in ('0'..='9').enumerate() { used_chars[i+52] = c; }
@@ -36,6 +36,8 @@ fn lex_instr(source_code: Vec<u8>) -> (Vec<Instruction>, Option<Vec<Directive>>)
     let mut DirStr = String::new();
     let mut parseDirArgs = false;
     let mut DirArgStr = String::new();
+    let mut pushDirArg = false;
+    let mut DirArgs: Vec<String> = Vec::new();
 
 
     let mut isVariable = false;
@@ -100,9 +102,18 @@ fn lex_instr(source_code: Vec<u8>) -> (Vec<Instruction>, Option<Vec<Directive>>)
                         parseDirArgs = false;
                         isDirective = false;
                         parseDirective = false;
+                        pushDirArg = true;
                         pushDirective = true;
+                    } else if symbol == '|' {
+                        pushDirArg = true;
                     } else {
                         DirArgStr.push(symbol);
+                    }
+
+                    if pushDirArg {
+                        pushDirArg = false;
+                        DirArgs.push(DirArgStr);
+                        DirArgStr = String::new();
                     }
                 }
             }
@@ -112,7 +123,7 @@ fn lex_instr(source_code: Vec<u8>) -> (Vec<Instruction>, Option<Vec<Directive>>)
                 match get_type_dir(DirStr.clone()) {
                     Ok(t) => {
                         if t {
-                            match get_directive_args(DirStr, DirArgStr) {
+                            match get_directive_args(DirStr, DirArgs) {
                                 Ok(dir) => directives.push(dir),
                                 Err(_) => error(6, row, column, symbol)
                             }
@@ -127,7 +138,7 @@ fn lex_instr(source_code: Vec<u8>) -> (Vec<Instruction>, Option<Vec<Directive>>)
                     Err(_) => error(5, row, column, symbol)
                 }
                 DirStr = String::new();
-                DirArgStr = String::new();
+                DirArgs = Vec::new();
             }
         } else if isVariable {
 
@@ -189,8 +200,8 @@ fn get_type_dir(dir: String) -> Result<bool, ()> {
     }
 }
 
-fn get_directive_args(dir: String, args: String) -> Result<Directive, ()> {
-    let arguments: Vec<Indent> = vec![Indent(args)];
+fn get_directive_args(dir: String, args: Vec<String>) -> Result<Directive, ()> {
+    let arguments: Vec<Indent> = args.iter().map(| arg: &String | Indent((*arg).clone()) ).collect();
     match dir.as_str() {
         "USES" => Ok(Directive::Use(arguments)),
         _ => Err(())

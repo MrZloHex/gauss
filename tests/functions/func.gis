@@ -1,5 +1,6 @@
 !USES <eight>
-; !USES <retsame | five>
+!USES <retsame | five>
+
 ; comment
 
 WORD myvar: #1234
