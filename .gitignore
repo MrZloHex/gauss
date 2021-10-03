@@ -1,3 +1,4 @@
 gauss-fnset/target/
+gauss-iset/target/
 .mypy_cache/
 gt.sh
