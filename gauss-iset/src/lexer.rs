@@ -27,6 +27,7 @@ fn lex_instr(source_code: Vec<u8>) -> (Vec<Instruction>, Option<Vec<Directive>>)
 
     let mut instructions: Vec<Instruction> = Vec::new();
     let mut directives: Vec<Directive> = Vec::new();
+    let mut variables: Vec<Variable> = Vec::new();
 
     let mut comment = false;
 
@@ -44,7 +45,14 @@ fn lex_instr(source_code: Vec<u8>) -> (Vec<Instruction>, Option<Vec<Directive>>)
     let mut pushSizeVar = false;
     let mut parseIndentVar = false;
     let mut SizeVarStr = String::new();
-    let mut SizeVar = Size::Byte(0);
+    let mut SizeVar = Size::Byte;
+    let mut VarName = String::new();
+    let mut indent = String::new();
+    let mut parseValueVar = false;
+    let mut pushVar = false;
+    let mut pushValVar = false;
+    let mut ValVar = Value::Byte(0);
+    let mut ValVarStr = String::new();
 
     let mut column: usize = 0;
     let mut row: usize = 1;
@@ -145,18 +153,22 @@ fn lex_instr(source_code: Vec<u8>) -> (Vec<Instruction>, Option<Vec<Directive>>)
                 DirArgs = Vec::new();
             }
         } else {
-            if symbol == '\n' { continue }
-            match symbol {
-                '!' => isDirective = true,
-                'B'|'W' => isVariable = true,
-                _ => unreachable!(symbol)
+            if !isVariable {
+                if symbol == '\n' { continue }
+                match symbol {
+                    '!' => isDirective = true,
+                    'B'|'W' => isVariable = true,
+                    _ => unreachable!(symbol)
+                }
             }
         }
 
         if isVariable {
-            if !parseSizeVar {
+            if !parseSizeVar && !parseIndentVar && !parseValueVar {
                 match symbol {
                     'B'|'W'|'D' => parseSizeVar = true,
+                    'a'..='z'|'0'..='9' => parseIndentVar = true,
+                    '#' => parseValueVar = true,
                     _ => unreachable!(symbol)
                 }
             }
@@ -180,8 +192,68 @@ fn lex_instr(source_code: Vec<u8>) -> (Vec<Instruction>, Option<Vec<Directive>>)
                         Err(_) => error(2, row, column, symbol)
                     }
                     SizeVarStr = String::new();
-                    println!("{:?}", SizeVar);
                 }
+            }
+
+            if parseIndentVar {
+                if symbol == ':' {
+                    parseIndentVar = false;
+                    VarName = indent;
+                    indent = String::new();
+                } else {
+                    indent.push(symbol);
+                }
+            }
+
+            if parseValueVar {
+                match symbol {
+                    '#' => continue,
+                    '0'..='9' => (),
+                    '\n' => {
+                        parseValueVar = false;
+                        pushVar = true;
+                        pushValVar = true;
+                    },
+                    _ => unreachable!(symbol)
+                }
+                if pushValVar {
+                    pushValVar = false;
+                    ValVar = match SizeVar {
+                        Size::Byte => {
+                            match ValVarStr.parse::<u8>() {
+                                Ok(val) => Value::Byte(val),
+                                Err(_) => { error(3, row, column, symbol); Value::Byte(0) }
+                            }
+                        },
+                        Size::Word => {
+                            match ValVarStr.parse::<u16>() {
+                                Ok(val) => Value::Word(val),
+                                Err(_) => { error(3, row, column, symbol); Value::Word(0) }
+                            }
+                        }
+                    };
+                    ValVarStr = String::new();
+                } else {
+                    ValVarStr.push(symbol);
+                }
+            }
+
+
+            if pushVar {
+                pushVar = false;
+                isVariable = false;
+                let var = Variable {
+                    name: Indent(VarName),
+                    size: SizeVar,
+                    value: ValVar,
+                };
+                println!("{:?}", var);
+                variables.push(var);
+
+                VarName = String::new();
+                parseSizeVar = false;
+                parseIndentVar = false;
+                parseValueVar = false;
             }
         }
     }
