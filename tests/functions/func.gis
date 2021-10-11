@@ -6,3 +6,7 @@ WORD myvar: #420
 
 BYTE eight2
 eight2 = #69
+
+BYTE eight1
+eight1 = eight2
+

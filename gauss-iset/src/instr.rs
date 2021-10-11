@@ -43,7 +43,8 @@ pub enum Value {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ValueType {
     Immediate(Value),
-    FunctionValue(FunctionCall)
+    FunctionValue(FunctionCall),
+    Variable(Indent)
 }
 
 pub_struct!( FunctionCall {
