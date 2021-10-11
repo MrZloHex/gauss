@@ -11,13 +11,12 @@ use lexer::lex_code;
 fn main() {
     // Allocating memory for files' names
     let mut is_filename: String = String::new();
-    let mut ofs_filename: String = String::new();
     
     let yaml = load_yaml!("cli.yaml");
     let cli = App::from_yaml(yaml).get_matches();
 
     // COMPILE
-    if let Some(matches) = cli.value_of("is") {
+    if let Some(matches) = cli.value_of("input") {
         is_filename = matches.to_string();
     }
 
@@ -27,23 +26,9 @@ fn main() {
         std::process::exit(1);
     }
 
-    if let Some(matches) = cli.value_of("ofs") {
-        ofs_filename = matches.to_string();
-    }
-
-    let smt: Vec<&str> = ofs_filename.split('.').collect();
-    if smt[smt.len()-1] != "gofs" {
-        eprintln!("Functions set should be with extension '.gofs'");
-        std::process::exit(1);
-    }
-
-    let functions = load_ofs(ofs_filename);
-    for function in functions {
-        println!("{:?}", function)
-    }
 
     let code = load_file(is_filename);
-    let instructions  = lex_code(code);
+    let info = lex_code(code);
     
     //let code = load_file(input_filename);
     //let func_or = lex_code(code);

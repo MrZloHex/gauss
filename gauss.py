@@ -3,40 +3,44 @@
 import sys
 import subprocess
 import os
+import fnmatch
 
-def parse_cli() -> str:
-    if len(sys.argv) == 1:
-        assert False, "HELP CLI OPTIONS"
-
-    argc = sys.argv[1:]
-    if argc[0] == "--help":
-        assert False, "HELP CLI OPTIONS"
+def parse_cli() -> (bool, str):
+    if len(sys.argv) > 1:
+        return (True, sys.argv[1])
     else:
-        make_fn = str(argc[0])
-
-    return make_fn
+        return (False, "")
 
 
 def load_file(filename: str) -> list:
     with open(filename, "r") as file:
         return file.readlines()
 
-def spawn_func(func_set: str):
-    subprocess.run(["./gauss-fnset/target/release/gauss-fnset","--input",func_set])
+def spawn_compiler(GIS: str):
+    GISC = subprocess.run(["./gauss-iset/target/release/gauss-iset","--input",GIS])
+    exit(GISC.returncode)
 
-def spawn_instr(instr_set: str, of_set: str):
-    subprocess.run(["./gauss-iset/target/release/gauss-iset","--is",instr_set,"--ofs",of_set])
+def search_file(filename: str) -> bool:
+    result = False
+    path = os.path.dirname(os.path.abspath(filename))
+    for root, dirs, files in os.walk(path):
+        for name in files:
+            if name == os.path.basename(filename):
+                result = True
+                return result
+    return result
 
-def parse_instr(code: list):
+def parse_instr(code: list, flnm: str):
     for line in code:
         tokens = line.split()
-        if tokens[0] == "function":
-            func_set = tokens[1]
-            spawn_func(func_set)
-        elif tokens[0] == "instruction":
-            instr_set = tokens[1]
-            of_set = tokens[2]
-            spawn_instr(instr_set, of_set)
+        if tokens[0] == "build":
+            # TODO: Implement manual defining path to .gis file
+            GIS = flnm.replace(".gbi", ".gis")
+            if search_file(GIS):
+                spawn_compiler(GIS)
+            else:
+                print(f"Didn't find {GIS}")
+                exit(1)
         else:
             assert False, "Uniplemented method"
 
@@ -54,10 +58,15 @@ def precompile():
 
 def main():
     precompile()
-    make_fn = parse_cli()
-    parse_instr(load_file(make_fn))
+    (isGBI, NameGBI) = parse_cli()
+    if isGBI:
+        GBI = load_file(NameGBI)
+        parse_instr(GBI, NameGBI)
+    # TODO: SEARCH FOR MAKE IN DIRECTORY 
+    # https://stackoverflow.com/questions/1724693/find-a-file-in-python
+    #else:
+    #    (isGBI, NameGBI) = search_gbi()
 
 
 if __name__ == "__main__":
     main()
-

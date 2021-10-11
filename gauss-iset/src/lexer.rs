@@ -53,6 +53,8 @@ fn lex_instr(source_code: Vec<u8>) -> (Vec<Instruction>, Option<Vec<Directive>>)
     let mut pushValVar = false;
     let mut ValVar = Value::Byte(0);
     let mut ValVarStr = String::new();
+    let mut parseValFun = false;
+    let mut parseValueFun = false;
 
     let mut column: usize = 0;
     let mut row: usize = 1;
@@ -169,6 +171,7 @@ fn lex_instr(source_code: Vec<u8>) -> (Vec<Instruction>, Option<Vec<Directive>>)
                     'B'|'W'|'D' => parseSizeVar = true,
                     'a'..='z'|'0'..='9' => parseIndentVar = true,
                     '#' => parseValueVar = true,
+                    '@' => parseValueFun = true,
                     _ => unreachable!(symbol)
                 }
             }
@@ -237,6 +240,26 @@ fn lex_instr(source_code: Vec<u8>) -> (Vec<Instruction>, Option<Vec<Directive>>)
                     ValVarStr.push(symbol);
                 }
             }
+
+            // if parseValueFun {
+            //     match symbol {
+            //         '@' => (),
+            //         'a'..='z'|'0'..='9' => parseValFuncName = true,
+            //         '[' => {
+            //             parseValFuncArgs = true;
+            //             parseValFuncName = false;
+            //         },
+            //         ']' => {
+            //             parseValueFun = false;
+            //             parseValFuncArgs = false;
+            //             pushFunc = true;
+            //         },
+            //         _ => unreachable!()
+            //     }
+
+            //     if parseValFuncName {
+
+            // }
 
 
             if pushVar {
