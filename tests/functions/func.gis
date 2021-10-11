@@ -2,8 +2,7 @@
 
 ; comment
 
-WORD myvar: #1234
-BYTE eight1: @eight[ ]
+WORD myvar: #420
 
-; BYTE eight2
-; eight2 = @eight[ ]
+BYTE eight2
+eight2 = #69

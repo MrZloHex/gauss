@@ -9,15 +9,15 @@ pub fn lex_code(source_code: Vec<u8>) -> (Vec<Instruction>, Option<Vec<Directive
     for instruction in &instructions.0 {
         println!("{:?}", instruction);
     }
-    for directive in &instructions.1 {
+    for directive in &(instructions.1.clone().unwrap()) {
         println!("{:?}", directive);
     }
     instructions
 }
 
 fn lex_instr(source_code: Vec<u8>) -> (Vec<Instruction>, Option<Vec<Directive>>) {
-    let mut used_chars: [char; 76] = [0 as char; 76];
-    let spec_chars = [':', '#', '[', ']', '!', '\n', '*', '&', '+', '-', '<', '>', '@', '|'];
+    let mut used_chars: [char; 78] = [0 as char; 78];
+    let spec_chars = [':', '#', '[', ']', '!', '\n', '*', '&', '+', '-', '<', '>', '@', '|', '.', '='];
     for (i,c) in ('a'..='z').enumerate() { used_chars[i] = c; }
     for (i,c) in ('A'..='Z').enumerate() { used_chars[i+26] = c; }
     for (i,c) in ('0'..='9').enumerate() { used_chars[i+52] = c; }
@@ -48,13 +48,22 @@ fn lex_instr(source_code: Vec<u8>) -> (Vec<Instruction>, Option<Vec<Directive>>)
     let mut SizeVar = Size::Byte;
     let mut VarName = String::new();
     let mut indent = String::new();
+    let mut isVarInit = false;
     let mut parseValueVar = false;
     let mut pushVar = false;
     let mut pushValVar = false;
     let mut ValVar = Value::Byte(0);
     let mut ValVarStr = String::new();
-    let mut parseValFun = false;
-    let mut parseValueFun = false;
+
+    let mut isAssignment = false;
+    let mut parseIndentVar = false;
+    let mut parseValueType = false;
+    let mut VarIndent = String::new();
+    let mut parseImmValue = false;
+    let mut VarValStr = String::new();
+    let mut VarVal = ValueType::Immediate(Value::Byte(0));
+    let mut parseFuncIndent = false;
+    let mut pushAssignment = false;
 
     let mut column: usize = 0;
     let mut row: usize = 1;
@@ -155,11 +164,12 @@ fn lex_instr(source_code: Vec<u8>) -> (Vec<Instruction>, Option<Vec<Directive>>)
                 DirArgs = Vec::new();
             }
         } else {
-            if !isVariable {
+            if !isVariable && !isAssignment {
                 if symbol == '\n' { continue }
                 match symbol {
                     '!' => isDirective = true,
                     'B'|'W' => isVariable = true,
+                    'a'..='z'|'0'..='9' => isAssignment = true,
                     _ => unreachable!(symbol)
                 }
             }
@@ -171,7 +181,6 @@ fn lex_instr(source_code: Vec<u8>) -> (Vec<Instruction>, Option<Vec<Directive>>)
                     'B'|'W'|'D' => parseSizeVar = true,
                     'a'..='z'|'0'..='9' => parseIndentVar = true,
                     '#' => parseValueVar = true,
-                    '@' => parseValueFun = true,
                     _ => unreachable!(symbol)
                 }
             }
@@ -202,7 +211,14 @@ fn lex_instr(source_code: Vec<u8>) -> (Vec<Instruction>, Option<Vec<Directive>>)
                 if symbol == ':' {
                     parseIndentVar = false;
                     VarName = indent;
+                    isVarInit = true;
                     indent = String::new();
+                } else if symbol == '\n' {
+                    parseIndentVar = false;
+                    VarName = indent;
+                    isVarInit = false;
+                    indent = String::new();
+                    pushVar = true;
                 } else {
                     indent.push(symbol);
                 }
@@ -241,42 +257,92 @@ fn lex_instr(source_code: Vec<u8>) -> (Vec<Instruction>, Option<Vec<Directive>>)
                 }
             }
 
-            // if parseValueFun {
-            //     match symbol {
-            //         '@' => (),
-            //         'a'..='z'|'0'..='9' => parseValFuncName = true,
-            //         '[' => {
-            //             parseValFuncArgs = true;
-            //             parseValFuncName = false;
-            //         },
-            //         ']' => {
-            //             parseValueFun = false;
-            //             parseValFuncArgs = false;
-            //             pushFunc = true;
-            //         },
-            //         _ => unreachable!()
-            //     }
-
-            //     if parseValFuncName {
-
-            // }
-
 
             if pushVar {
                 pushVar = false;
                 isVariable = false;
-                let var = Variable {
-                    name: Indent(VarName),
-                    size: SizeVar,
-                    value: ValVar,
+                let var = if isVarInit {
+                    Variable {
+                        name: Indent(VarName),
+                        size: SizeVar,
+                        init: Init::Initilized(ValVar)
+                    }
+                } else {
+                    Variable {
+                        name: Indent(VarName),
+                        size: SizeVar,
+                        init: Init::Uninitilized
+                    }
                 };
-                println!("{:?}", var);
-                variables.push(var);
-
+                instructions.push(Instruction::Variable(var));
                 VarName = String::new();
                 parseSizeVar = false;
                 parseIndentVar = false;
                 parseValueVar = false;
+            }
+        }
+
+
+        if isAssignment {
+            if !parseIndentVar && !parseValueType {
+                match symbol {
+                    'a'..='z'|'0'..='9' => parseIndentVar = true,
+                    _ => unreachable!(symbol)
+                }
+            }
+
+            if parseIndentVar {
+                if symbol == '=' {
+                    parseIndentVar = false;
+                    VarIndent = indent;
+                    indent = String::new();
+                    parseValueType = true;
+                    continue;
+                } else {
+                    indent.push(symbol);
+                }
+            }
+            if parseValueType {
+                match symbol {
+                    '#' => parseImmValue = true,
+                    '@' => parseFuncIndent = true,
+                    _ => unreachable!(symbol)
+                }
+                parseValueType = false;
+            } else {
+                if parseImmValue {
+                    if symbol == '\n' {
+                        parseImmValue = false;
+                        let value = match VarValStr.parse::<u64>() {
+                            Ok(val) => val,
+                            Err(_) => { error(3, row, column, symbol); 0 }
+                        };
+                        if value < 256 {
+                            VarVal = ValueType::Immediate(Value::Byte(value as u8))
+                        } else if value < 65536 {
+                            VarVal = ValueType::Immediate(Value::Word(value as u16))
+                        } else {
+                            error(7, row, column, symbol)
+                        }
+                        VarValStr = String::new();
+                        pushAssignment = true;
+                    } else {
+                        VarValStr.push(symbol)
+                    }
+                } else if parseFuncIndent {
+
+                }
+            }
+            
+            if pushAssignment {
+                pushAssignment = false;
+                isAssignment = false;
+                let assign = Assignment {
+                    var_name: Indent(VarIndent),
+                    val: VarVal.clone()
+                };
+                VarIndent = String::new();
+                instructions.push(Instruction::Assignment(assign));
             }
         }
     }
@@ -298,6 +364,7 @@ fn lex_instr(source_code: Vec<u8>) -> (Vec<Instruction>, Option<Vec<Directive>>)
  *  - 4: incorrect function
  *  - 5: Unknown directive
  *  - 6: Failed to parse arguments of directive
+ *  - 7: Unknown value size
  */
 fn error(err_code: u8, row: usize, column: usize, symbol: char) {
     println!("{}", symbol as u8);
@@ -309,6 +376,7 @@ fn error(err_code: u8, row: usize, column: usize, symbol: char) {
         4 => eprintln!("Incorrect function ar {}:{}", row, column),
         5 => eprintln!("Unknown directive at {}:{}", row, column),
         6 => eprintln!("Failed to parse arguments of directive at {}:{}", row, column),
+        7 => eprintln!("Unknown value size at {}:{}", row, column),
         _ => panic!("Unreachable error code")
     }
     std::process::exit(1);

@@ -40,10 +40,29 @@ pub enum Value {
     Word(u16)
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum ValueType {
+    Immediate(Value),
+    FunctionValue(FunctionCall)
+}
+
+pub_struct!( FunctionCall {
+    name: Indent,
+    args: Option<Vec<Variable>>,
+    argc: usize,
+});
+
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub enum Init {
+    Initilized(Value),
+    Uninitilized
+}
+
 pub_struct!( Variable {
     name: Indent,
     size: Size,
-    value: Value,
+    init: Init,
 });
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -51,8 +70,15 @@ pub enum Directive {
     Use(Vec<Indent>),
 }
 
+pub_struct!( Assignment {
+    var_name: Indent,
+    val: ValueType,
+});
+
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Instruction {
     Directive(Directive),
-    Variable(Variable)
+    Variable(Variable),
+    Assignment(Assignment)
 }
