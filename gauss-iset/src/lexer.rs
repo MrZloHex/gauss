@@ -5,14 +5,8 @@ use crate::instr::*;
 
 
 pub fn lex_code(source_code: Vec<u8>) -> (Vec<Instruction>, Option<Vec<Directive>>) {
-    let instructions = lex_instr(source_code);
-    for instruction in &instructions.0 {
-        println!("{:?}", instruction);
-    }
-    for directive in &(instructions.1.clone().unwrap()) {
-        println!("{:?}", directive);
-    }
-    instructions
+    let data = lex_instr(source_code);
+    data 
 }
 
 fn lex_instr(source_code: Vec<u8>) -> (Vec<Instruction>, Option<Vec<Directive>>) {
@@ -56,12 +50,15 @@ fn lex_instr(source_code: Vec<u8>) -> (Vec<Instruction>, Option<Vec<Directive>>)
     let mut ValVarStr = String::new();
 
     let mut isAssignment = false;
-    let mut parseIndentVar = false;
+    let mut parseVarIndent = false;
     let mut parseValueType = false;
     let mut VarIndent = String::new();
     let mut parseImmValue = false;
     let mut VarValStr = String::new();
     let mut VarVal = ValueType::Immediate(Value::Byte(0));
+    let mut AssVal = ValueType::Immediate(Value::Byte(0));
+    let mut parseValVarIndent = false;
+    let mut ValVarIndent = String::new();
     let mut parseFuncIndent = false;
     let mut pushAssignment = false;
 
@@ -276,6 +273,7 @@ fn lex_instr(source_code: Vec<u8>) -> (Vec<Instruction>, Option<Vec<Directive>>)
                 };
                 instructions.push(Instruction::Variable(var));
                 VarName = String::new();
+                indent = String::new();
                 parseSizeVar = false;
                 parseIndentVar = false;
                 parseValueVar = false;
@@ -284,16 +282,16 @@ fn lex_instr(source_code: Vec<u8>) -> (Vec<Instruction>, Option<Vec<Directive>>)
 
 
         if isAssignment {
-            if !parseIndentVar && !parseValueType {
+            if !parseVarIndent && !parseValueType {
                 match symbol {
-                    'a'..='z'|'0'..='9' => parseIndentVar = true,
+                    'a'..='z'|'0'..='9' => parseVarIndent = true,
                     _ => unreachable!(symbol)
                 }
             }
 
-            if parseIndentVar {
+            if parseVarIndent {
                 if symbol == '=' {
-                    parseIndentVar = false;
+                    parseVarIndent = false;
                     VarIndent = indent;
                     indent = String::new();
                     parseValueType = true;
@@ -306,11 +304,14 @@ fn lex_instr(source_code: Vec<u8>) -> (Vec<Instruction>, Option<Vec<Directive>>)
                 match symbol {
                     '#' => parseImmValue = true,
                     '@' => parseFuncIndent = true,
+                    'a'..='z'|'0'..='9' => parseValVarIndent = true,
                     _ => unreachable!(symbol)
                 }
                 parseValueType = false;
-            } else {
+            } 
+            if !parseValueType {
                 if parseImmValue {
+                    if symbol == '#' { continue }
                     if symbol == '\n' {
                         parseImmValue = false;
                         let value = match VarValStr.parse::<u64>() {
@@ -325,12 +326,22 @@ fn lex_instr(source_code: Vec<u8>) -> (Vec<Instruction>, Option<Vec<Directive>>)
                             error(7, row, column, symbol)
                         }
                         VarValStr = String::new();
+                        AssVal = VarVal.clone();
                         pushAssignment = true;
                     } else {
                         VarValStr.push(symbol)
                     }
                 } else if parseFuncIndent {
-
+                    if symbol == '@' { continue }
+                } else if parseValVarIndent {
+                    if symbol == '\n' {
+                        parseValVarIndent = false;
+                        AssVal = ValueType::Variable(Indent(ValVarIndent));
+                        ValVarIndent = String::new();
+                        pushAssignment = true;
+                    } else {
+                        ValVarIndent.push(symbol);
+                    }
                 }
             }
             
@@ -339,9 +350,10 @@ fn lex_instr(source_code: Vec<u8>) -> (Vec<Instruction>, Option<Vec<Directive>>)
                 isAssignment = false;
                 let assign = Assignment {
                     var_name: Indent(VarIndent),
-                    val: VarVal.clone()
+                    val: AssVal.clone()
                 };
                 VarIndent = String::new();
+                indent = String::new();
                 instructions.push(Instruction::Assignment(assign));
             }
         }
