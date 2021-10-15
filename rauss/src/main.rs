@@ -38,7 +38,7 @@ fn main() {
     // }
 
     if analyze_instr(&instructions) {
-        println!("\nCHECK COMPLETE ALL IS OK");
+        println!("\nCHECK COMPLETE\nALL IS OK");
         // COMPILE
     } else {
         println!("\nFAILED TO CHECK");
