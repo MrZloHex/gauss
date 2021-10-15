@@ -11,6 +11,9 @@ use lexer::lex_instr;
 mod analyzer;
 use analyzer::analyze_instr;
 
+mod compile;
+use compile::into_nasm;
+
 fn main() {
     // Allocating memory for files' names
     let mut is_filename: String = String::new();
@@ -37,12 +40,15 @@ fn main() {
     //     println!("{:?}", instruction);
     // }
 
-    if analyze_instr(&instructions) {
-        println!("\nCHECK COMPLETE\nALL IS OK");
-        // COMPILE
+    let (ok, variables) = analyze_instr(&instructions);
+    if ok {
+        println!("\nCHECK COMPLETE");
     } else {
-        println!("\nFAILED TO CHECK");
+        eprintln!("\nFAILED TO CHECK");
+        std::process::exit(1);
     }
+
+    let _nasm = into_nasm(instructions, variables);
 
 
     // TODO

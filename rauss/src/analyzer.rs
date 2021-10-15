@@ -1,7 +1,7 @@
 use crate::types::*;
 
 
-pub fn analyze_instr(instructions_p: &Vec<Instruction>) -> bool {
+pub fn analyze_instr(instructions_p: &Vec<Instruction>) -> (bool, Vec<Variable>) {
     let variables = get_vars(instructions_p);
     let assignments = get_assign(instructions_p);
 
@@ -84,7 +84,7 @@ pub fn analyze_instr(instructions_p: &Vec<Instruction>) -> bool {
 
 
 
-    true
+    (true, variables)
 }
 
 
