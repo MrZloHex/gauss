@@ -5,8 +5,8 @@ mod instr;
 mod file;
 use file::*;
 
-mod lexer;
-use lexer::lex_code;
+mod is_lexer;
+use is_lexer::lex_code;
 
 fn main() {
     // Allocating memory for files' names
