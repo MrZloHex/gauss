@@ -79,7 +79,6 @@ pub_struct!( Assignment {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Instruction {
-    Directive(Directive),
     Variable(Variable),
     Assignment(Assignment)
 }
