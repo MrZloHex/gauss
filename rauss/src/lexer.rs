@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+#![allow(dead_code)]
 
 
 use crate::types::*;
@@ -15,7 +16,6 @@ pub fn lex_instr(source_code: Vec<u8>) -> (Vec<Instruction>, Option<Vec<Directiv
 
     let mut instructions: Vec<Instruction> = Vec::new();
     let mut directives: Vec<Directive> = Vec::new();
-    let mut variables: Vec<Variable> = Vec::new();
 
     let mut comment = false;
 

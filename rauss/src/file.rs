@@ -1,9 +1,9 @@
 use std::fs::{metadata, File};
 use std::io::Read;
 
-use ron::de::from_reader;
+// use ron::de::from_reader;
 
-use crate::types::*;
+// use crate::types::*;
 
 pub fn load_file(filename: String) -> Vec<u8> {
     let mut f = File::open(&filename).expect("no file found");
@@ -22,16 +22,16 @@ pub fn load_file(filename: String) -> Vec<u8> {
 //    write(filename, content).expect("Unable to write file");
 //}
 
-pub fn load_ofs(filename: String) -> Vec<Function> {
-    let file = File::open(filename).expect("Failed opening file");
-    let functions: Vec<Function> = match from_reader(file) {
-        Ok(f) => f,
-        Err(e) => {
-            eprintln!("Failed to read OFS, {}", e);
-            std::process::exit(1);
-        }
-    };
-
-    functions
-}
+// pub fn load_ofs(filename: String) -> Vec<Function> {
+//     let file = File::open(filename).expect("Failed opening file");
+//     let functions: Vec<Function> = match from_reader(file) {
+//         Ok(f) => f,
+//         Err(e) => {
+//             eprintln!("Failed to read OFS, {}", e);
+//             std::process::exit(1);
+//         }
+//     };
+// 
+//     functions
+// }
 

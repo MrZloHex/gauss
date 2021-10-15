@@ -32,10 +32,10 @@ fn main() {
 
     let code = load_file(is_filename);
     let (instructions, _directives_o) = lex_instr(code);
-    println!("Instructions:");
-    for instruction in &instructions {
-        println!("{:?}", instruction);
-    }
+    // println!("Instructions:");
+    // for instruction in &instructions {
+    //     println!("{:?}", instruction);
+    // }
 
     if analyze_instr(&instructions) {
         println!("\nCHECK COMPLETE ALL IS OK");

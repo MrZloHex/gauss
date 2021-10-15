@@ -40,7 +40,7 @@ pub fn analyze_instr(instructions_p: &Vec<Instruction>) -> bool {
         }
     }
 
-    let (uninit_vars, init_vars) = get_un_init_vars(&variables, &assignments);
+    let (uninit_vars, _init_vars) = get_un_init_vars(&variables, &assignments);
 
     for assignment in &assignments {
         match &assignment.val {
@@ -56,6 +56,8 @@ pub fn analyze_instr(instructions_p: &Vec<Instruction>) -> bool {
             _ => ()
         }
     }
+
+    warn_uninit_vars(uninit_vars);
 
 
     // check for correct size of operands of assignment
@@ -100,6 +102,7 @@ pub fn analyze_instr(instructions_p: &Vec<Instruction>) -> bool {
 fn error<T>(error_code: u8, problem_struct: T) -> ! 
 where T: std::fmt::Debug
 {
+    eprint!("ERROR: ");
     match error_code {
         0 => eprintln!("Size of variable not corresponds to its value,\nsee variable {:?}", problem_struct),
         1 => eprintln!("Variable name `{:?}` is already used", problem_struct),
@@ -110,6 +113,12 @@ where T: std::fmt::Debug
         _ => unreachable!()
     }
     std::process::exit(1);
+}
+
+fn warn_uninit_vars(vars: Vec<Variable>) {
+    for var in vars {
+        println!("WARNING: Uninitilized variable `{}`", var.name.0)
+    }
 }
 
 
