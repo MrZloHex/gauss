@@ -9,7 +9,7 @@ mod lexer;
 use lexer::lex_instr;
 
 mod analyzer;
-use analyzer::direct_analyze;
+use analyzer::analyze_instr;
 
 fn main() {
     // Allocating memory for files' names
@@ -31,18 +31,28 @@ fn main() {
 
 
     let code = load_file(is_filename);
-    let (instructions, directives_o) = lex_instr(code);
+    let (instructions, _directives_o) = lex_instr(code);
     println!("Instructions:");
-    for instruction in instructions {
+    for instruction in &instructions {
         println!("{:?}", instruction);
     }
-    if let Some(directives) = directives_o {
-        for directive in directives {
-            println!("{:?}", directive);
-            // match directive {
-            //     Directive::Use(filnames) => 
-            // }
-        }
+
+    if analyze_instr(&instructions) {
+        println!("\nCHECK COMPLETE ALL IS OK");
+        // COMPILE
+    } else {
+        println!("\nFAILED TO CHECK");
     }
+
+
+    // TODO
+    // if let Some(directives) = directives_o {
+    //     for directive in directives {
+    //         println!("{:?}", directive);
+    //         // match directive {
+    //         //     Directive::Use(filnames) => 
+    //         // }
+    //     }
+    // }
 }
 
