@@ -32,9 +32,16 @@ fn main() {
 
     let code = load_file(is_filename);
     let (instructions, directives_o) = lex_instr(code);
+    println!("Instructions:");
+    for instruction in instructions {
+        println!("{:?}", instruction);
+    }
     if let Some(directives) = directives_o {
         for directive in directives {
-            println!("{:?}", directive)
+            println!("{:?}", directive);
+            // match directive {
+            //     Directive::Use(filnames) => 
+            // }
         }
     }
 }
