@@ -1,9 +1,9 @@
-use std::fs::{metadata, File, write};
+use std::fs::{metadata, File};
 use std::io::Read;
 
 use ron::de::from_reader;
 
-use crate::instr::*;
+use crate::types::*;
 
 pub fn load_file(filename: String) -> Vec<u8> {
     let mut f = File::open(&filename).expect("no file found");

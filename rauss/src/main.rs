@@ -1,12 +1,15 @@
 use clap::{load_yaml, App};
 
-mod instr;
+mod types;
 
 mod file;
 use file::*;
 
-mod is_lexer;
-use is_lexer::lex_code;
+mod lexer;
+use lexer::lex_instr;
+
+mod analyzer;
+use analyzer::direct_analyze;
 
 fn main() {
     // Allocating memory for files' names
@@ -28,11 +31,11 @@ fn main() {
 
 
     let code = load_file(is_filename);
-    let info = lex_code(code);
-    
-    //let code = load_file(input_filename);
-    //let func_or = lex_code(code);
-    //print!("{}", func_or);
-    //store_file(func_or, object_filename);
+    let (instructions, directives_o) = lex_instr(code);
+    if let Some(directives) = directives_o {
+        for directive in directives {
+            println!("{:?}", directive)
+        }
+    }
 }
 
