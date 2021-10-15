@@ -4,7 +4,6 @@ use crate::types::*;
 pub fn analyze_instr(instructions_p: &Vec<Instruction>) -> bool {
     let variables = get_vars(instructions_p);
     let assignments = get_assign(instructions_p);
-    let uninit_vars = get_uninit_vars(&variables, &assignments);
 
     // check for unique names of variables
     let mut tmp_is: Vec<Indent> = Vec::new();
@@ -34,6 +33,7 @@ pub fn analyze_instr(instructions_p: &Vec<Instruction>) -> bool {
         }
     }
 
+    let uninit_vars = get_uninit_vars(&variables, &assignments);
     // check for assignment to existing and initilized variable
     
 
@@ -116,5 +116,26 @@ fn get_size_var(vars: &Vec<Variable>, var_name: Indent) -> Size {
         }
     }
     unreachable!();
+}
+
+fn get_uninit_vars(vars: &Vec<Variable>, assigns: &Vec<Assignment>) -> Vec<Variable> {
+    let mut uninit_vars: Vec<Variable> = Vec::new();
+    for var in vars {
+        match var.init {
+            Init::Uninitilized => {
+                let mut init = false;
+                for assign in assigns {
+                    if assign.var_name == var.name {
+                        init = true;
+                    }
+                }
+                if !init {
+                    uninit_vars.push(var.clone())
+                }
+            },
+            _ => ()
+        }
+    }
+    uninit_vars
 }
 
