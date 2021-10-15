@@ -17,7 +17,7 @@ def load_file(filename: str) -> list:
         return file.readlines()
 
 def spawn_compiler(GIS: str):
-    GISC = subprocess.run(["./gauss-iset/target/release/gauss-iset","--input",GIS])
+    GISC = subprocess.run(["./rauss/target/release/rauss","--input",GIS])
     exit(GISC.returncode)
 
 def search_file(filename: str) -> bool:
@@ -45,13 +45,10 @@ def parse_instr(code: list, flnm: str):
             assert False, "Uniplemented method"
 
 def precompile():
-    os.chdir("gauss-fnset")
-    fnset = subprocess.run(["cargo","build","--release"])
+    os.chdir("rauss")
+    rauss= subprocess.run(["cargo","build","--release"])
     os.chdir("..")
-    os.chdir("gauss-iset")
-    iset = subprocess.run(["cargo","build","--release"])
-    os.chdir("..")
-    if fnset.returncode != 0 or iset.returncode != 0:
+    if rauss.returncode != 0:
         print("Can't compile compiler")
         exit(1)
 

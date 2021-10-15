@@ -1,5 +1,5 @@
+rauss/target/
 gauss-fnset/target/
-gauss-iset/target/
 .mypy_cache/
 gt.sh
 *.o

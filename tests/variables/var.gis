@@ -1,0 +1,16 @@
+; this is comment
+
+; unintialized variables
+BYTE var1
+WORD var2
+
+; initilized variables
+BYTE var3: #69
+WORD var4: #420
+
+; assigment value ffrom initilized variable to unintilized one
+var1 = var3
+
+; assigment immediate value to unintilized variable
+var2 = #420
+

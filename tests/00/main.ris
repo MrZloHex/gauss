@@ -1,6 +1,0 @@
-
-!heap 8
-
-store ?heap #32 $0
-store ?heap #34 $4
-set _var %byte 32
