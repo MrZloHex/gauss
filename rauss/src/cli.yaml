@@ -10,3 +10,9 @@ args:
        required: true
        takes_value: true
        value_name: IS_FILE
+    - output:
+       short: o
+       long: output
+       help: Filename of output file 
+       takes_value: true
+       value_name: OUTPUT

@@ -17,8 +17,14 @@ def load_file(filename: str) -> list:
         return file.readlines()
 
 def spawn_compiler(GIS: str):
+    print("COMPILING")
     GISC = subprocess.run(["./rauss/target/release/rauss","--input",GIS])
-    exit(GISC.returncode)
+    if GISC.returncode != 0:
+        exit(GISC.returncode)
+    subprocess.run(["nasm","-felf64",GIS.replace(".gis", ".asm"),"-o",GIS.replace(".gis", ".o")])
+    print("LINKING")
+    subprocess.run(["ld", GIS.replace(".gis", ".o"),"-o", GIS.replace(".gis", "")])
+    print("FINISHED")
 
 def search_file(filename: str) -> bool:
     result = False
@@ -46,7 +52,7 @@ def parse_instr(code: list, flnm: str):
 
 def precompile():
     os.chdir("rauss")
-    rauss= subprocess.run(["cargo","build","--release"])
+    rauss= subprocess.run(["cargo","build","--release",">","/dev/null"])
     os.chdir("..")
     if rauss.returncode != 0:
         print("Can't compile compiler")

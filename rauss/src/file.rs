@@ -1,5 +1,5 @@
 use std::fs::{metadata, File};
-use std::io::Read;
+use std::io::{Read, Write};
 
 // use ron::de::from_reader;
 
@@ -12,6 +12,11 @@ pub fn load_file(filename: String) -> Vec<u8> {
     f.read(&mut buffer).expect("buffer overflow");
 
     buffer
+}
+
+pub fn store_file(content: String, filename: String) {
+    let mut f = File::create(&filename).expect("can't create file");
+    f.write_all(content.as_bytes()).expect("failed to write into file");
 }
 
 //pub fn store_ron(functions: Vec<Function>, filename: String) {

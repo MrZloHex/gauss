@@ -17,7 +17,8 @@ use compile::into_nasm;
 fn main() {
     // Allocating memory for files' names
     let mut is_filename: String = String::new();
-    
+    let out_filename: String;
+
     let yaml = load_yaml!("cli.yaml");
     let cli = App::from_yaml(yaml).get_matches();
 
@@ -31,6 +32,7 @@ fn main() {
         eprintln!("Functions set should be with extension '.gis'");
         std::process::exit(1);
     }
+    out_filename = is_filename.replace(".gis", ".asm");
 
 
     let code = load_file(is_filename);
@@ -48,7 +50,9 @@ fn main() {
         std::process::exit(1);
     }
 
-    let _nasm = into_nasm(instructions, variables);
+    let nasm = into_nasm(instructions, variables);
+
+    store_file(nasm, out_filename);
 
 
     // TODO

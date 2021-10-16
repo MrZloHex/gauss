@@ -60,6 +60,13 @@ pub fn into_nasm(instructions: Vec<Instruction>, variables: Vec<Variable>) -> St
         }
     }
     code.push('\n');
+    
+    // exi t syscall
+    code.push_str("\t\tmov\trax, 0x3c\n");
+    code.push_str("\t\tmov\trdi, 0\n");
+    code.push_str("\t\tsyscall\n");
+
+    code.push('\n');
 
     // print!("NASM\n{}", code);
     code
