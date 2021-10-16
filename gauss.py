@@ -47,12 +47,15 @@ def parse_instr(code: list, flnm: str):
             else:
                 print(f"Didn't find {GIS}")
                 exit(1)
+        elif tokens[0] == "run":
+            print("RUNNING")
+            subprocess.run([flnm.replace(".gbi", "")])
         else:
             assert False, "Uniplemented method"
 
 def precompile():
     os.chdir("rauss")
-    rauss= subprocess.run(["cargo","build","--release",">","/dev/null"])
+    rauss= subprocess.run(["cargo","build","--release"])
     os.chdir("..")
     if rauss.returncode != 0:
         print("Can't compile compiler")

@@ -43,9 +43,7 @@ fn main() {
     // }
 
     let (ok, variables) = analyze_instr(&instructions);
-    if ok {
-        println!("\nCHECK COMPLETE");
-    } else {
+    if !ok {
         eprintln!("\nFAILED TO CHECK");
         std::process::exit(1);
     }
