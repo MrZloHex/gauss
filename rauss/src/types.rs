@@ -35,15 +35,10 @@ pub_struct!( FunctionCall {
     argc: usize,
 });
 
-pub_struct!( SetDir {
-    name: Indent,
-    value: String,
-});
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Directive {
     Use(Vec<Indent>),
-    Set(SetDir),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]

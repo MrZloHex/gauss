@@ -5,27 +5,17 @@
 use crate::types::*;
 
 pub fn lex_instr(source_code: Vec<u8>) -> Vec<Instruction> {
-    let mut used_chars: [char; 77] = [0 as char; 77];
-    let spec_chars = [':', '#', '[', ']', '\n', '*', '&', '+', '-', '<', '>', '@', '|', '.', '='];
+    let mut used_chars: [char; 78] = [0 as char; 78];
+    let spec_chars = [':', '#', '!', '[', ']', '\n', '*', '&', '+', '-', '<', '>', '@', '|', '.', '='];
     for (i,c) in ('a'..='z').enumerate() { used_chars[i] = c; }
     for (i,c) in ('A'..='Z').enumerate() { used_chars[i+26] = c; }
     for (i,c) in ('0'..='9').enumerate() { used_chars[i+52] = c; }
     for (i,c) in spec_chars.iter().enumerate() { used_chars[i+62] = *c; }
   
-    
-
     let mut instructions: Vec<Instruction> = Vec::new();
 
     let mut comment = false;
-
-    let mut isDirective = false;
-    let mut pushDirective = false;
-    let mut parseDirective = false;
-    let mut DirStr = String::new();
-    let mut parseDirArgs = false;
-    let mut DirArgStr = String::new();
-    let mut pushDirArg = false;
-    let mut DirArgs: Vec<String> = Vec::new();
+    let mut directive = false;
 
     let mut isVariable = false;
     let mut parseSizeVar = false;
@@ -84,6 +74,18 @@ pub fn lex_instr(source_code: Vec<u8>) -> Vec<Instruction> {
                 continue
             } else {
                 continue
+            }
+        }
+        if symbol == '!' {
+            directive = true;
+            continue;
+        }
+        if directive {
+            if sym_code == 0xA {
+                directive = false;
+                continue;
+            } else {
+                continue;
             }
         }
 
@@ -854,13 +856,6 @@ fn get_directive(dir: String, indent: String, args: Vec<String>) -> Result<Direc
         "USES" => {
             let arguments: Vec<Indent> = args.iter().map(| arg: &String | Indent((*arg).clone()) ).collect();
             Ok(Directive::Use(arguments))
-        },
-        "SET" => {
-            let set = SetDir {
-                name: Indent(indent),
-                value: args[0].clone()
-            };
-            Ok(Directive::Set(set))
         },
         _ => Err(())
     }

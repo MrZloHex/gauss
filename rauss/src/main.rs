@@ -14,7 +14,7 @@ use lexer::{
 mod analyzer;
 use analyzer::{
     analyze_instr,
-    analyze_direct,
+    //analyze_direct,
 };
 
 mod compile;
@@ -40,25 +40,38 @@ fn main() {
     }
     out_filename = is_filename.replace(".gis", ".asm");
 
+    let mut is_functions = false;
+    let mut filenames_func: Vec<types::Indent> = Vec::new();
 
     let code = load_file(is_filename);
     let directives = lex_direct(code.clone());
+    for directive in directives {
+        match directive {
+            types::Directive::Use(mut files_i) => {
+                is_functions = true;
+                filenames_func.append(&mut files_i);
+            }
+        }
+    }
     let instructions = lex_instr(code);
-    let instructions = analyze_direct(instructions, &directives);
-    // // println!("Instructions:");
-    // // for instruction in &instructions {
-    // //     println!("{:?}", instruction);
-    // // }
 
-    // let (ok, variables) = analyze_instr(&instructions);
-    // if !ok {
-    //     eprintln!("\nFAILED TO CHECK");
-    //     std::process::exit(1);
-    // }
+    
+    if is_functions {
+        for fs in filenames_func {
+            let fs_filename = fs.0.clone();
+            
+        }
+    }
 
-    // let nasm = into_nasm(instructions, variables);
+    let (ok, variables) = analyze_instr(&instructions);
+    if !ok {
+        eprintln!("\nFAILED TO CHECK");
+        std::process::exit(1);
+    }
 
-    // store_file(nasm, out_filename);
+    let nasm = into_nasm(instructions, variables);
+
+    store_file(nasm, out_filename);
 
 
     // TODO

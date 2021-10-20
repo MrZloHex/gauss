@@ -21,10 +21,10 @@ def spawn_compiler(GIS: str):
     GISC = subprocess.run(["./rauss/target/release/rauss","--input",GIS])
     if GISC.returncode != 0:
         exit(GISC.returncode)
-    # subprocess.run(["nasm","-felf64",GIS.replace(".gis", ".asm"),"-o",GIS.replace(".gis", ".o")])
-    # print("LINKING")
-    # subprocess.run(["ld", GIS.replace(".gis", ".o"),"-o", GIS.replace(".gis", "")])
-    # print("FINISHED")
+    subprocess.run(["nasm","-felf64",GIS.replace(".gis", ".asm"),"-o",GIS.replace(".gis", ".o")])
+    print("LINKING")
+    subprocess.run(["ld", GIS.replace(".gis", ".o"),"-o", GIS.replace(".gis", "")])
+    print("FINISHED")
 
 def search_file(filename: str) -> bool:
     result = False
@@ -39,6 +39,8 @@ def search_file(filename: str) -> bool:
 def parse_instr(code: list, flnm: str):
     for line in code:
         tokens = line.split()
+        if not tokens:
+            continue
         if tokens[0] == "build":
             # TODO: Implement manual defining path to .gis file
             GIS = flnm.replace(".gbi", ".gis")
@@ -49,7 +51,8 @@ def parse_instr(code: list, flnm: str):
                 exit(1)
         elif tokens[0] == "run":
             print("RUNNING")
-            subprocess.run([flnm.replace(".gbi", "")])
+            executable = flnm.replace(".gbi", "")
+            subprocess.run([f"./{executable}"])
         else:
             print(tokens)
             assert False, "Uniplemented method"
