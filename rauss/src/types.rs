@@ -28,6 +28,24 @@ pub_struct!( Argument {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Indent(pub String);
 
+
+pub_struct!( FunctionCall {
+    name: Indent,
+    args: Option<Vec<Variable>>,
+    argc: usize,
+});
+
+pub_struct!( SetDir {
+    name: Indent,
+    value: String,
+});
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum Directive {
+    Use(Vec<Indent>),
+    Set(SetDir),
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub enum Size {
     Byte,
@@ -47,13 +65,6 @@ pub enum ValueType {
     Variable(Indent)
 }
 
-pub_struct!( FunctionCall {
-    name: Indent,
-    args: Option<Vec<Variable>>,
-    argc: usize,
-});
-
-
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum Init {
     Initilized(Value),
@@ -65,11 +76,6 @@ pub_struct!( Variable {
     size: Size,
     init: Init,
 });
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum Directive {
-    Use(Vec<Indent>),
-}
 
 pub_struct!( Assignment {
     var_name: Indent,

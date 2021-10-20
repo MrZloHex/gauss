@@ -1,14 +1,22 @@
 ; STD
 
 
-display: [ SEQ[10 BYTE] filename | WORD fn_len ] => NULL
+NULL display: [ PTR string | WORD str_len ]
  | BYTE syscall_n: #1		; write
  | BYTE file_desc: #1 		; 1 - STDOUT
- | syscall [ syscall_n | file_desc | filename | fn_len ]
+ | SYSCALL [ syscall_n | file_desc | string | str_len ]
+ | RET [ ]
  \_
 
 
-exit: [ BYTE exit_code ] => NULL
- | syscall [ #60 | exit_code ]
+UNRET exit: [ BYTE exit_code ]
+ | BYTE syscall_n: #60
+ | SYSCALL [ syscall_n | exit_code ]
  \_
+
+PTR mem_alloc: [ WORD size ]
+ | ; here should be omplemetnation but just use malloc()
+ \_
+
+
 

@@ -1,0 +1,6 @@
+; Testing directives
+
+!SET _magic_value < #420 >
+
+BYTE var1: #69
+WORD var2: _magic_value

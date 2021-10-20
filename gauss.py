@@ -5,7 +5,7 @@ import subprocess
 import os
 import fnmatch
 
-def parse_cli() -> (bool, str):
+def parse_cli() -> tuple:
     if len(sys.argv) > 1:
         return (True, sys.argv[1])
     else:
@@ -21,10 +21,10 @@ def spawn_compiler(GIS: str):
     GISC = subprocess.run(["./rauss/target/release/rauss","--input",GIS])
     if GISC.returncode != 0:
         exit(GISC.returncode)
-    subprocess.run(["nasm","-felf64",GIS.replace(".gis", ".asm"),"-o",GIS.replace(".gis", ".o")])
-    print("LINKING")
-    subprocess.run(["ld", GIS.replace(".gis", ".o"),"-o", GIS.replace(".gis", "")])
-    print("FINISHED")
+    # subprocess.run(["nasm","-felf64",GIS.replace(".gis", ".asm"),"-o",GIS.replace(".gis", ".o")])
+    # print("LINKING")
+    # subprocess.run(["ld", GIS.replace(".gis", ".o"),"-o", GIS.replace(".gis", "")])
+    # print("FINISHED")
 
 def search_file(filename: str) -> bool:
     result = False
@@ -51,6 +51,7 @@ def parse_instr(code: list, flnm: str):
             print("RUNNING")
             subprocess.run([flnm.replace(".gbi", "")])
         else:
+            print(tokens)
             assert False, "Uniplemented method"
 
 def precompile():

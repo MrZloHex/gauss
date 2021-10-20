@@ -4,9 +4,9 @@
 
 use crate::types::*;
 
-pub fn lex_instr(source_code: Vec<u8>) -> (Vec<Instruction>, Option<Vec<Directive>>) {
-    let mut used_chars: [char; 78] = [0 as char; 78];
-    let spec_chars = [':', '#', '[', ']', '!', '\n', '*', '&', '+', '-', '<', '>', '@', '|', '.', '='];
+pub fn lex_instr(source_code: Vec<u8>) -> Vec<Instruction> {
+    let mut used_chars: [char; 77] = [0 as char; 77];
+    let spec_chars = [':', '#', '[', ']', '\n', '*', '&', '+', '-', '<', '>', '@', '|', '.', '='];
     for (i,c) in ('a'..='z').enumerate() { used_chars[i] = c; }
     for (i,c) in ('A'..='Z').enumerate() { used_chars[i+26] = c; }
     for (i,c) in ('0'..='9').enumerate() { used_chars[i+52] = c; }
@@ -15,7 +15,6 @@ pub fn lex_instr(source_code: Vec<u8>) -> (Vec<Instruction>, Option<Vec<Directiv
     
 
     let mut instructions: Vec<Instruction> = Vec::new();
-    let mut directives: Vec<Directive> = Vec::new();
 
     let mut comment = false;
 
@@ -93,76 +92,12 @@ pub fn lex_instr(source_code: Vec<u8>) -> (Vec<Instruction>, Option<Vec<Directiv
             error(0, row, column, symbol)
         }
 
-        if isDirective {
-            if !parseDirective {
-                match symbol {
-                    '\n' => {
-                        isDirective = false;
-                        pushDirective = true;
-                    },
-                    'A'..='Z' => parseDirective = true,
-                    _ => unreachable!()
-                }
-            } 
-            if parseDirective {
-                if !parseDirArgs {
-                    match symbol {
-                        '<' => parseDirArgs = true,
-                        'A'..='Z' => DirStr.push(symbol),
-                        _ => unreachable!()
-                    }
-                } else {
-                    if symbol == '>' {
-                        parseDirArgs = false;
-                        isDirective = false;
-                        parseDirective = false;
-                        pushDirArg = true;
-                        pushDirective = true;
-                    } else if symbol == '|' {
-                        pushDirArg = true;
-                    } else {
-                        DirArgStr.push(symbol);
-                    }
-
-                    if pushDirArg {
-                        pushDirArg = false;
-                        DirArgs.push(DirArgStr);
-                        DirArgStr = String::new();
-                    }
-                }
-            }
-
-            if pushDirective {
-                pushDirective = false;
-                match get_type_dir(DirStr.clone()) {
-                    Ok(t) => {
-                        if t {
-                            match get_directive_args(DirStr, DirArgs) {
-                                Ok(dir) => directives.push(dir),
-                                Err(_) => error(6, row, column, symbol)
-                            }
-                        } else {
-                            unreachable!();
-                            //match get_directive(DirStr) {
-                            //    Ok(dir) => directives.push(dir),
-                            //    Err(_) => unreachable!()
-                            //}
-                        }
-                    },
-                    Err(_) => error(5, row, column, symbol)
-                }
-                DirStr = String::new();
-                DirArgs = Vec::new();
-            }
-        } else {
-            if !isVariable && !isAssignment {
-                if symbol == '\n' { continue }
-                match symbol {
-                    '!' => isDirective = true,
-                    'B'|'W' => isVariable = true,
-                    'a'..='z'|'0'..='9' => isAssignment = true,
-                    _ => unreachable!(symbol)
-                }
+        if !isVariable && !isAssignment {
+            if symbol == '\n' { continue }
+            match symbol {
+                'B'|'W' => isVariable = true,
+                'a'..='z'|'0'..='9' => isAssignment = true,
+                _ => unreachable!(symbol)
             }
         }
 
@@ -352,11 +287,8 @@ pub fn lex_instr(source_code: Vec<u8>) -> (Vec<Instruction>, Option<Vec<Directiv
             }
         }
     }
-    if directives.len() > 0 {
-        (instructions, Some(directives))
-    } else {
-        (instructions, None) 
-    }
+
+    instructions
 }
 
 
@@ -746,6 +678,132 @@ pub fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
     functions
 }
 
+pub fn lex_direct(code: Vec<u8>) -> Vec<Directive> {
+    let mut directives: Vec<Directive> = Vec::new();
+
+    let mut isDirective = false;
+    let mut parseDirective = false;
+    let mut pushDirective = false;
+    let mut parseDirArgs = false;
+    let mut pushDirArg = false;
+    let mut DirArgStr = String::new();
+    let mut DirArgs: Vec<String> = Vec::new();
+    let mut parseDirType = false;
+    let mut DirTypeStr = String::new();
+    let mut parseDirIndent = false;
+    let mut DirIndentStr = String::new();
+
+    let mut column: usize = 0;
+    let mut row:    usize = 1;
+
+    for sym_code in code {
+        column += 1;
+        if sym_code == 0xA {
+            if column == 1 {
+                column = 0;
+                row += 1;
+                continue;
+            }
+            column = 0;
+            row += 1;
+        }
+
+        let symbol: char = sym_code as char;
+
+        if symbol == ' ' { continue }
+
+        if column == 1 && symbol == '!' {
+            isDirective = true;
+            continue;
+        }
+
+        if isDirective {
+            if !parseDirective {
+                match symbol {
+                    '\n' => {
+                        isDirective = false;
+                        pushDirective = true;
+                    },
+                    'A'..='Z' => parseDirective = true,
+                    _ => unreachable!()
+                }
+            }
+            if parseDirective {
+                if !parseDirArgs && !parseDirType && !parseDirIndent {
+                    match symbol {
+                        '<' => parseDirArgs = true,
+                        'A'..='Z' => parseDirType = true,
+                        _ => unreachable!()
+                    }
+                }
+                if parseDirType {
+                    match symbol {
+                        'A'..='Z' => DirTypeStr.push(symbol),
+                        '<' => {
+                            parseDirArgs = true;
+                            parseDirType = false;
+                        },
+                        '_'|'a'..='z'|'1'..='9' => {
+                            parseDirIndent = true;
+                            parseDirType   = false;
+                        },
+                        _ => error(0, row, column, symbol)
+                    }
+                }
+                if parseDirIndent {
+                    if symbol == '<' {
+                        parseDirArgs = true;
+                        parseDirIndent = false;
+                    } else if symbol == '\n' {
+                        parseDirIndent = false;
+                    } else {
+                        DirIndentStr.push(symbol);
+                    }
+                }
+                if parseDirArgs {
+                    if symbol == '>' {
+                        parseDirArgs = false;
+                        isDirective = false;
+                        parseDirective = false;
+                        pushDirArg = true;
+                        pushDirective = true;
+                    } else if symbol == '|' {
+                        pushDirArg = true;
+                    } else if symbol == '<' {
+                        ()
+                    } else {
+                        DirArgStr.push(symbol);
+                    }
+
+                    if pushDirArg {
+                        pushDirArg = false;
+                        DirArgs.push(DirArgStr);
+                        DirArgStr = String::new();
+                    }
+                }
+            }
+        }
+        if pushDirective {
+            pushDirective = false;
+            if get_type_dir(DirTypeStr.clone()) {
+                match get_directive(DirTypeStr, DirIndentStr, DirArgs) {
+                    Ok(dir) => directives.push(dir),
+                    Err(_) => error(6, row, column, symbol)
+                }
+            } else {
+                error(5, row, column, symbol)
+            }
+            
+            DirTypeStr = String::new();
+            DirIndentStr = String::new();
+            DirArgs = Vec::new();
+        }
+    }
+
+
+    return directives
+}
+
 
 
 /*
@@ -783,17 +841,27 @@ fn get_size(size_str: String) -> Result<Size, ()> {
     }
 }
 
-fn get_type_dir(dir: String) -> Result<bool, ()> {
+fn get_type_dir(dir: String) -> bool {
     match dir.as_str() {
-        "USES" => Ok(true),
-        _ => Err(())
+        "USES" => true,
+        "SET" => true,
+        _ => false
     }
 }
 
-fn get_directive_args(dir: String, args: Vec<String>) -> Result<Directive, ()> {
-    let arguments: Vec<Indent> = args.iter().map(| arg: &String | Indent((*arg).clone()) ).collect();
+fn get_directive(dir: String, indent: String, args: Vec<String>) -> Result<Directive, ()> {
     match dir.as_str() {
-        "USES" => Ok(Directive::Use(arguments)),
+        "USES" => {
+            let arguments: Vec<Indent> = args.iter().map(| arg: &String | Indent((*arg).clone()) ).collect();
+            Ok(Directive::Use(arguments))
+        },
+        "SET" => {
+            let set = SetDir {
+                name: Indent(indent),
+                value: args[0].clone()
+            };
+            Ok(Directive::Set(set))
+        },
         _ => Err(())
     }
 }

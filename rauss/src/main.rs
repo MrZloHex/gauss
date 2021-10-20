@@ -6,10 +6,16 @@ mod file;
 use file::*;
 
 mod lexer;
-use lexer::lex_instr;
+use lexer::{
+    lex_instr,
+    lex_direct,
+};
 
 mod analyzer;
-use analyzer::analyze_instr;
+use analyzer::{
+    analyze_instr,
+    analyze_direct,
+};
 
 mod compile;
 use compile::into_nasm;
@@ -36,21 +42,23 @@ fn main() {
 
 
     let code = load_file(is_filename);
-    let (instructions, _directives_o) = lex_instr(code);
-    // println!("Instructions:");
-    // for instruction in &instructions {
-    //     println!("{:?}", instruction);
+    let directives = lex_direct(code.clone());
+    let instructions = lex_instr(code);
+    let instructions = analyze_direct(instructions, &directives);
+    // // println!("Instructions:");
+    // // for instruction in &instructions {
+    // //     println!("{:?}", instruction);
+    // // }
+
+    // let (ok, variables) = analyze_instr(&instructions);
+    // if !ok {
+    //     eprintln!("\nFAILED TO CHECK");
+    //     std::process::exit(1);
     // }
 
-    let (ok, variables) = analyze_instr(&instructions);
-    if !ok {
-        eprintln!("\nFAILED TO CHECK");
-        std::process::exit(1);
-    }
+    // let nasm = into_nasm(instructions, variables);
 
-    let nasm = into_nasm(instructions, variables);
-
-    store_file(nasm, out_filename);
+    // store_file(nasm, out_filename);
 
 
     // TODO

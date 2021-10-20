@@ -1,0 +1,5 @@
+!USES <std.gfs>
+
+SEQ[13 BYTE] hello: "Hello World\n\0"
+@display [ &hello | WORD #13 ]
+@exit [ BYTE #0 ]

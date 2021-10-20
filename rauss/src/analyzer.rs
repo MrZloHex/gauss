@@ -88,6 +88,46 @@ pub fn analyze_instr(instructions_p: &Vec<Instruction>) -> (bool, Vec<Variable>)
 }
 
 
+pub fn analyze_direct(instructions: Vec<Instruction>, directives: &Vec<Directive>) -> Vec<Instruction> {
+
+    let mut instrs: Vec<Instruction> = instructions;
+
+    for directive in directives {
+        match directive {
+            Directive::Set(set) => {
+                let indent = set.name.clone();
+                for mut instr in &instrs {
+                    let instr_new: Instruction;
+                    match instr {
+                        Instruction::Variable(var) => {
+                            match var.init {
+                                Init::Initilized(val) => {
+                                    ()
+                                    // TODO: MAKE INITILIAZATION BY ANOTHER VARIABLE
+                                },
+                                _ => ()
+                            }
+                        },
+                        Instruction::Assignment(ass) => {
+                            match &ass.val {
+                                ValueType::Variable(indent_var) => {
+                                    if indent_var == indent {
+                                        instr_new = Instruction::Assignment
+                                },
+                                _ => ()
+                            }
+                        }
+                    }
+                }
+            },
+            Directive::Use(_indents) => ()
+        }
+    }
+
+    instrs
+}
+
+
 /*  Error codes:
  *
  *  - 0: Size of variable not corresponds to it's value
