@@ -669,11 +669,7 @@ pub fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
             variables = Vec::new();
             RetVar = String::new();
 
-            if check_func(func.clone()) {
-                functions.push(func);
-            } else {
-                error(4, row, column, symbol);
-            }
+            functions.push(func);
         }
     }
 
@@ -861,30 +857,3 @@ fn get_directive(dir: String, indent: String, args: Vec<String>) -> Result<Direc
     }
 }
 
-fn check_func(function: Function) -> bool {
-    if let Some(vars) = function.vars {
-        for var in vars {
-            if var.name.0 == function.ret_var.0 {
-                if var.size == function.ret_size {
-                    return true
-                } else {
-                    return false
-                }
-            }
-        }
-        false
-    } else if let Some(args) = function.args {
-        for arg in args {
-            if arg.name.0 == function.ret_var.0 {
-                if arg.size == function.ret_size {
-                    return true
-                } else {
-                    return false
-                }
-            }
-        }
-        false
-    } else {
-        return false
-    }
-}

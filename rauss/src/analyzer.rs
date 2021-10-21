@@ -127,6 +127,57 @@ pub fn analyze_instr(instructions_p: &Vec<Instruction>) -> (bool, Vec<Variable>)
 //     instrs
 // }
 
+pub fn analyze_func(functions: &Vec<Function>) -> bool {
+    'func: for function in functions {
+        let vars = if let Some(vars) = function.vars.clone() { vars } else { Vec::new() };
+        let args = if let Some(args) = function.args.clone() { args } else { Vec::new() };
+        
+        let mut checked = false;
+        if !vars.is_empty() {
+            for var in vars {
+                if var.name.0 == function.ret_var.0 {
+                    if var.size == function.ret_size {
+                        checked = true;
+                    } else {
+                        error(6, (*function).name.0.clone())
+                    }
+                }
+
+                if checked { continue 'func }
+            }
+        } else {
+            for arg in args.clone() {
+                if arg.name.0 == function.ret_var.0 {
+                    if arg.size == function.ret_size {
+                        checked = true;
+                    } else {
+                        error(6, (*function).name.0.clone())
+                    }
+                }
+
+                if checked { continue 'func }
+            }
+        }
+
+        if !checked {
+            for arg in args {
+                if arg.name.0 == function.ret_var.0 {
+                    if arg.size == function.ret_size {
+                        checked = true;
+                    } else {
+                        error(6, (*function).name.0.clone())
+                    }
+                }
+
+                if checked { continue 'func }
+            }
+            if !checked {
+                error(7, (*function).name.0.clone())
+            }
+        }
+    }
+    true
+}
 
 /*  Error codes:
  *
@@ -136,6 +187,8 @@ pub fn analyze_instr(instructions_p: &Vec<Instruction>) -> (bool, Vec<Variable>)
  *  - 3: ASsignment to undeclared variable
  *  - 4: Assigning value of undeclared variable
  *  - 5: Assigning value of uninitilized variable
+ *  - 6: Returning variable with incorrect size
+ *  - 7: Returning undeclared variable
  *
  */
 
@@ -150,6 +203,8 @@ where T: std::fmt::Debug
         3 => eprintln!("Assigning to undeclared variable `{:?}`", problem_struct),
         4 => eprintln!("Assigning value of undeclared variable `{:?}`", problem_struct),
         5 => eprintln!("Assigning value of uninitilized variable `{:?}`", problem_struct),
+        6 => eprintln!("Returning variable with incorrect size at function `{:?}`", problem_struct),
+        7 => eprintln!("Returning undeclared variable at `{:?}`", problem_struct),
         _ => unreachable!()
     }
     std::process::exit(1);
