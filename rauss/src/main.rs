@@ -6,17 +6,13 @@ mod file;
 use file::*;
 
 mod lexer;
-use lexer::{
-    lex_instr,
-    lex_direct,
-    lex_func
-};
+use lexer::{lex_direct, lex_func, lex_instr};
 
 mod analyzer;
 use analyzer::{
-    analyze_instr,
     //analyze_direct,
-    analyze_func
+    analyze_func,
+    analyze_instr,
 };
 
 mod compile;
@@ -39,7 +35,9 @@ fn main() {
         is_filename = matches.to_string();
     };
 
-    if !check_ext(is_filename.clone(), 0) { std::process::exit(1) }
+    if !check_ext(is_filename.clone(), 0) {
+        std::process::exit(1)
+    }
 
     out_filename = is_filename.replace(".gis", ".asm");
 
@@ -57,38 +55,37 @@ fn main() {
 
     let instructions = lex_instr(code);
 
-    
     if is_functions {
         for fs in filenames_func {
             let fs_filename = fs.0.clone();
-            if !check_ext(fs_filename.clone(), 1) { std::process::exit(1) }
+            if !check_ext(fs_filename.clone(), 1) {
+                std::process::exit(1)
+            }
             let functions_code = load_file(fs_filename);
             functions.append(&mut lex_func(functions_code));
         }
-        if !analyze_func(&functions) { 
+        if !analyze_func(&functions) {
             eprintln!("\nFAILED TO CHECK FUNCTIONS");
             std::process::exit(1);
         }
     }
 
-
-    let (ok, variables) = analyze_instr(&instructions);
+    let (ok, variables) = analyze_instr(&instructions, &functions);
     if !ok {
         eprintln!("\nFAILED TO CHECK");
         std::process::exit(1);
     }
 
-    let nasm = into_nasm(instructions, variables);
+    let nasm = into_nasm(instructions, variables, functions);
 
     store_file(nasm, out_filename);
-
 
     // TODO
     // if let Some(directives) = directives_o {
     //     for directive in directives {
     //         println!("{:?}", directive);
     //         // match directive {
-    //         //     Directive::Use(filnames) => 
+    //         //     Directive::Use(filnames) =>
     //         // }
     //     }
     // }
@@ -98,18 +95,21 @@ fn check_ext(filename: String, type_ext: u8) -> bool {
     let smt: Vec<&str> = filename.split('.').collect();
     match type_ext {
         0 => {
-            if smt[smt.len()-1] != "gis" {
+            if smt[smt.len() - 1] != "gis" {
                 eprintln!("Instruction set should be with extension '.gis'");
                 std::process::exit(1);
-            } else { return true }
-        },
+            } else {
+                return true;
+            }
+        }
         1 => {
-            if smt[smt.len()-1] != "gfs" {
+            if smt[smt.len() - 1] != "gfs" {
                 eprintln!("Functions set should be with extension '.gfs'");
                 std::process::exit(1);
-            } else { return true }
-        },
-        _ => unreachable!()
+            } else {
+                return true;
+            }
+        }
+        _ => unreachable!(),
     }
 }
-

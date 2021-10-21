@@ -1,7 +1,10 @@
 use crate::types::*;
 
-
-pub fn into_nasm(instructions: Vec<Instruction>, variables: Vec<Variable>) -> String {
+pub fn into_nasm(
+    instructions: Vec<Instruction>,
+    variables: Vec<Variable>,
+    functions: Vec<Function>,
+) -> String {
     let mut code = String::new();
 
     let (u_vars, i_vars) = get_un_init_vars(&variables);
@@ -11,7 +14,7 @@ pub fn into_nasm(instructions: Vec<Instruction>, variables: Vec<Variable>) -> St
     for u_var in u_vars {
         let (size, quantity) = match u_var.size {
             Size::Byte => ("resb", 1_u8),
-            Size::Word => ("resw", 1_u8)
+            Size::Word => ("resw", 1_u8),
         };
         code.push_str(format!("\t{}_:\t{} {}\n", u_var.name.0, size, quantity).as_str());
     }
@@ -22,45 +25,89 @@ pub fn into_nasm(instructions: Vec<Instruction>, variables: Vec<Variable>) -> St
     for i_var in i_vars {
         let size = match i_var.size {
             Size::Byte => "db",
-            Size::Word => "dw"
+            Size::Word => "dw",
         };
-        let value = if let Init::Initilized(val) = i_var.init { match val { Value::Byte(v) => {v as u16}, Value::Word(v) => v } } else { unreachable!() };
+        let value = if let Init::Initilized(val) = i_var.init {
+            match val {
+                Value::Byte(v) => v as u16,
+                Value::Word(v) => v,
+            }
+        } else {
+            unreachable!()
+        };
         code.push_str(format!("\t{}_:\t{} {}\n", i_var.name.0, size, value).as_str());
     }
     code.push('\n');
 
     // section .text
     code.push_str("SECTION .text\n");
+
+    // functions
+    for function in functions {
+        code.push_str(format!("\t{}_:\n", function.name.0).as_str());
+        code.push_str("\t\tpush rbp\n");
+        code.push_str("\t\tmov  rbp,\trsp\n");
+
+        let mut size_loc_vars: u64 = 0;
+        if !function.vars.is_empty() {
+            for var in function.vars {
+                match var.size {
+                    Size::Byte => size_loc_vars += 1,
+                    Size::Word => size_loc_vars += 2,
+                }
+            }
+        }
+        if size_loc_vars != 0 {
+            code.push_str(format!("\t\tsub  rsp,\t{}\n", size_loc_vars).as_str());
+        }
+
+
+        // MAIN
+
+
+        if size_loc_vars == 0 {
+            code.push_str("\t\tpop  rbp\n");
+        } else {
+            code.push_str("\t\tleave\n");
+        }
+        code.push_str("\t\tret\n");
+    }
+
+    // start
     code.push_str("\tglobal _start\n");
     code.push_str("\t_start:\n");
     for instruction in instructions {
         match instruction {
-            Instruction::Assignment(assign) => {
-                match assign.val {
-                    ValueType::Immediate(val) => {
-                        let (value, size) = match val {
-                            Value::Byte(v) => (v as u16, "BYTE"),
-                            Value::Word(v) => (v, "WORD")
-                        };
-                        code.push_str(format!("\t\tmov\t{} [{}_], {}\n", size, assign.var_name.0, value).as_str())
-                    },
-                    ValueType::Variable(var_name) => {
-                        let var = get_variable(&variables, var_name.clone());
-                        let (reg, size) = match var.size {
-                            Size::Byte => ("al", "BYTE"),
-                            Size::Word => ("ax", "WORD")
-                        };
-                        code.push_str(format!("\t\tmov\t{}, {} [{}_]\n", reg, size, var_name.0).as_str());
-                        code.push_str(format!("\t\tmov\t{} [{}_], {}\n", size, assign.var_name.0, reg).as_str())
-                    },
-                    _ => unreachable!()
+            Instruction::Assignment(assign) => match assign.val {
+                ValueType::Immediate(val) => {
+                    let (value, size) = match val {
+                        Value::Byte(v) => (v as u16, "BYTE"),
+                        Value::Word(v) => (v, "WORD"),
+                    };
+                    code.push_str(
+                        format!("\t\tmov\t{} [{}_], {}\n", size, assign.var_name.0, value).as_str(),
+                    )
                 }
+                ValueType::Variable(var_name) => {
+                    let var = get_variable(&variables, var_name.clone());
+                    let (reg, size) = match var.size {
+                        Size::Byte => ("al", "BYTE"),
+                        Size::Word => ("ax", "WORD"),
+                    };
+                    code.push_str(
+                        format!("\t\tmov\t{}, {} [{}_]\n", reg, size, var_name.0).as_str(),
+                    );
+                    code.push_str(
+                        format!("\t\tmov\t{} [{}_], {}\n", size, assign.var_name.0, reg).as_str(),
+                    )
+                }
+                _ => unreachable!(),
             },
-            _ => unreachable!()
+            _ => unreachable!(),
         }
     }
     code.push('\n');
-    
+
     // exi t syscall
     code.push_str("\t\tmov\trax, 0x3c\n");
     code.push_str("\t\tmov\trdi, 0\n");
@@ -79,7 +126,7 @@ fn get_un_init_vars(vars: &Vec<Variable>) -> (Vec<Variable>, Vec<Variable>) {
     for var in vars {
         match var.init {
             Init::Initilized(_) => i_vars.push(var.clone()),
-            Init::Uninitilized  => u_vars.push(var.clone())
+            Init::Uninitilized => u_vars.push(var.clone()),
         }
     }
 
@@ -92,7 +139,7 @@ fn get_executable_instr(instrs: Vec<Instruction>) -> Vec<Instruction> {
     for instr in instrs {
         match instr {
             Instruction::Variable(_) => (),
-            Instruction::Assignment(_) => instructions.push(instr.clone())
+            Instruction::Assignment(_) => instructions.push(instr.clone()),
         }
     }
 

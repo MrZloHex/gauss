@@ -16,7 +16,8 @@ pub fn load_file(filename: String) -> Vec<u8> {
 
 pub fn store_file(content: String, filename: String) {
     let mut f = File::create(&filename).expect("can't create file");
-    f.write_all(content.as_bytes()).expect("failed to write into file");
+    f.write_all(content.as_bytes())
+        .expect("failed to write into file");
 }
 
 //pub fn store_ron(functions: Vec<Function>, filename: String) {
@@ -36,7 +37,6 @@ pub fn store_file(content: String, filename: String) {
 //             std::process::exit(1);
 //         }
 //     };
-// 
+//
 //     functions
 // }
-

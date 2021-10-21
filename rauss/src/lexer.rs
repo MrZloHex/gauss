@@ -1,17 +1,26 @@
 #![allow(non_snake_case)]
 #![allow(dead_code)]
 
-
 use crate::types::*;
 
 pub fn lex_instr(source_code: Vec<u8>) -> Vec<Instruction> {
     let mut used_chars: [char; 78] = [0 as char; 78];
-    let spec_chars = [':', '#', '!', '[', ']', '\n', '*', '&', '+', '-', '<', '>', '@', '|', '.', '='];
-    for (i,c) in ('a'..='z').enumerate() { used_chars[i] = c; }
-    for (i,c) in ('A'..='Z').enumerate() { used_chars[i+26] = c; }
-    for (i,c) in ('0'..='9').enumerate() { used_chars[i+52] = c; }
-    for (i,c) in spec_chars.iter().enumerate() { used_chars[i+62] = *c; }
-  
+    let spec_chars = [
+        ':', '#', '!', '[', ']', '\n', '*', '&', '+', '-', '<', '>', '@', '|', '.', '=',
+    ];
+    for (i, c) in ('a'..='z').enumerate() {
+        used_chars[i] = c;
+    }
+    for (i, c) in ('A'..='Z').enumerate() {
+        used_chars[i + 26] = c;
+    }
+    for (i, c) in ('0'..='9').enumerate() {
+        used_chars[i + 52] = c;
+    }
+    for (i, c) in spec_chars.iter().enumerate() {
+        used_chars[i + 62] = *c;
+    }
+
     let mut instructions: Vec<Instruction> = Vec::new();
 
     let mut comment = false;
@@ -51,29 +60,31 @@ pub fn lex_instr(source_code: Vec<u8>) -> Vec<Instruction> {
     for sym_code in source_code {
         column += 1;
         if sym_code == 0xA {
-            if column == 1 { 
+            if column == 1 {
                 column = 0;
                 row += 1;
-                continue
+                continue;
             }
             column = 0;
             row += 1;
         }
 
         let symbol: char = sym_code as char;
-        
-        if symbol == ' ' { continue }
+
+        if symbol == ' ' {
+            continue;
+        }
 
         if symbol == ';' {
             comment = true;
-            continue
+            continue;
         }
         if comment {
             if sym_code == 0xA {
                 comment = false;
-                continue
+                continue;
             } else {
-                continue
+                continue;
             }
         }
         if symbol == '!' {
@@ -89,39 +100,40 @@ pub fn lex_instr(source_code: Vec<u8>) -> Vec<Instruction> {
             }
         }
 
-
         if !used_chars.contains(&symbol) {
             error(0, row, column, symbol)
         }
 
         if !isVariable && !isAssignment {
-            if symbol == '\n' { continue }
+            if symbol == '\n' {
+                continue;
+            }
             match symbol {
-                'B'|'W' => isVariable = true,
-                'a'..='z'|'0'..='9' => isAssignment = true,
-                _ => unreachable!(symbol)
+                'B' | 'W' => isVariable = true,
+                'a'..='z' | '0'..='9' => isAssignment = true,
+                _ => unreachable!(symbol),
             }
         }
 
         if isVariable {
             if !parseSizeVar && !parseIndentVar && !parseValueVar {
                 match symbol {
-                    'B'|'W'|'D' => parseSizeVar = true,
-                    'a'..='z'|'0'..='9' => parseIndentVar = true,
+                    'B' | 'W' | 'D' => parseSizeVar = true,
+                    'a'..='z' | '0'..='9' => parseIndentVar = true,
                     '#' => parseValueVar = true,
-                    _ => unreachable!(symbol)
+                    _ => unreachable!(symbol),
                 }
             }
 
             if parseSizeVar {
                 match symbol {
-                    'a'..='z'|'0'..='9' => {
+                    'a'..='z' | '0'..='9' => {
                         parseSizeVar = false;
                         pushSizeVar = true;
                         parseIndentVar = true;
-                    },
+                    }
                     'A'..='Z' => (),
-                    _ => unreachable!()
+                    _ => unreachable!(),
                 }
                 if !pushSizeVar {
                     SizeVarStr.push(symbol)
@@ -129,7 +141,7 @@ pub fn lex_instr(source_code: Vec<u8>) -> Vec<Instruction> {
                     pushSizeVar = false;
                     match get_size(SizeVarStr) {
                         Ok(sz) => SizeVar = sz,
-                        Err(_) => error(2, row, column, symbol)
+                        Err(_) => error(2, row, column, symbol),
                     }
                     SizeVarStr = String::new();
                 }
@@ -160,31 +172,32 @@ pub fn lex_instr(source_code: Vec<u8>) -> Vec<Instruction> {
                         parseValueVar = false;
                         pushVar = true;
                         pushValVar = true;
-                    },
-                    _ => unreachable!(symbol)
+                    }
+                    _ => unreachable!(symbol),
                 }
                 if pushValVar {
                     pushValVar = false;
                     ValVar = match SizeVar {
-                        Size::Byte => {
-                            match ValVarStr.parse::<u8>() {
-                                Ok(val) => Value::Byte(val),
-                                Err(_) => { error(3, row, column, symbol); Value::Byte(0) }
+                        Size::Byte => match ValVarStr.parse::<u8>() {
+                            Ok(val) => Value::Byte(val),
+                            Err(_) => {
+                                error(3, row, column, symbol);
+                                Value::Byte(0)
                             }
                         },
-                        Size::Word => {
-                            match ValVarStr.parse::<u16>() {
-                                Ok(val) => Value::Word(val),
-                                Err(_) => { error(3, row, column, symbol); Value::Word(0) }
+                        Size::Word => match ValVarStr.parse::<u16>() {
+                            Ok(val) => Value::Word(val),
+                            Err(_) => {
+                                error(3, row, column, symbol);
+                                Value::Word(0)
                             }
-                        }
+                        },
                     };
                     ValVarStr = String::new();
                 } else {
                     ValVarStr.push(symbol);
                 }
             }
-
 
             if pushVar {
                 pushVar = false;
@@ -193,13 +206,13 @@ pub fn lex_instr(source_code: Vec<u8>) -> Vec<Instruction> {
                     Variable {
                         name: Indent(VarName),
                         size: SizeVar,
-                        init: Init::Initilized(ValVar)
+                        init: Init::Initilized(ValVar),
                     }
                 } else {
                     Variable {
                         name: Indent(VarName),
                         size: SizeVar,
-                        init: Init::Uninitilized
+                        init: Init::Uninitilized,
                     }
                 };
                 instructions.push(Instruction::Variable(var));
@@ -211,12 +224,11 @@ pub fn lex_instr(source_code: Vec<u8>) -> Vec<Instruction> {
             }
         }
 
-
         if isAssignment {
             if !parseVarIndent && !parseValueType {
                 match symbol {
-                    'a'..='z'|'0'..='9' => parseVarIndent = true,
-                    _ => unreachable!(symbol)
+                    'a'..='z' | '0'..='9' => parseVarIndent = true,
+                    _ => unreachable!(symbol),
                 }
             }
 
@@ -235,19 +247,24 @@ pub fn lex_instr(source_code: Vec<u8>) -> Vec<Instruction> {
                 match symbol {
                     '#' => parseImmValue = true,
                     '@' => parseFuncIndent = true,
-                    'a'..='z'|'0'..='9' => parseValVarIndent = true,
-                    _ => unreachable!(symbol)
+                    'a'..='z' | '0'..='9' => parseValVarIndent = true,
+                    _ => unreachable!(symbol),
                 }
                 parseValueType = false;
-            } 
+            }
             if !parseValueType {
                 if parseImmValue {
-                    if symbol == '#' { continue }
+                    if symbol == '#' {
+                        continue;
+                    }
                     if symbol == '\n' {
                         parseImmValue = false;
                         let value = match VarValStr.parse::<u64>() {
                             Ok(val) => val,
-                            Err(_) => { error(3, row, column, symbol); 0 }
+                            Err(_) => {
+                                error(3, row, column, symbol);
+                                0
+                            }
                         };
                         if value < 256 {
                             VarVal = ValueType::Immediate(Value::Byte(value as u8))
@@ -263,7 +280,9 @@ pub fn lex_instr(source_code: Vec<u8>) -> Vec<Instruction> {
                         VarValStr.push(symbol)
                     }
                 } else if parseFuncIndent {
-                    if symbol == '@' { continue }
+                    if symbol == '@' {
+                        continue;
+                    }
                 } else if parseValVarIndent {
                     if symbol == '\n' {
                         parseValVarIndent = false;
@@ -275,13 +294,13 @@ pub fn lex_instr(source_code: Vec<u8>) -> Vec<Instruction> {
                     }
                 }
             }
-            
+
             if pushAssignment {
                 pushAssignment = false;
                 isAssignment = false;
                 let assign = Assignment {
                     var_name: Indent(VarIndent),
-                    val: AssVal.clone()
+                    val: AssVal.clone(),
                 };
                 VarIndent = String::new();
                 indent = String::new();
@@ -293,17 +312,23 @@ pub fn lex_instr(source_code: Vec<u8>) -> Vec<Instruction> {
     instructions
 }
 
-
-
 pub fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
     let mut used_chars: [char; 75] = [0 as char; 75];
-    let spec_chars = [':', '#', '[', ']', '|', '\n', '*', '&', '+', '-', '/', '\\', '_'];
-    for (i,c) in ('a'..='z').enumerate() { used_chars[i] = c; }
-    for (i,c) in ('A'..='Z').enumerate() { used_chars[i+26] = c; }
-    for (i,c) in ('0'..='9').enumerate() { used_chars[i+52] = c; }
-    for (i,c) in spec_chars.iter().enumerate() { used_chars[i+62] = *c; }
-  
-    
+    let spec_chars = [
+        ':', '#', '[', ']', '|', '\n', '*', '&', '+', '-', '/', '\\', '_',
+    ];
+    for (i, c) in ('a'..='z').enumerate() {
+        used_chars[i] = c;
+    }
+    for (i, c) in ('A'..='Z').enumerate() {
+        used_chars[i + 26] = c;
+    }
+    for (i, c) in ('0'..='9').enumerate() {
+        used_chars[i + 52] = c;
+    }
+    for (i, c) in spec_chars.iter().enumerate() {
+        used_chars[i + 62] = *c;
+    }
 
     let mut functions: Vec<Function> = Vec::new();
     let mut arguments: Vec<Argument> = Vec::new();
@@ -332,13 +357,10 @@ pub fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
     let mut SizeRetStr = String::new();
     let mut pushRet = false;
 
-
     let mut row: usize = 1;
     let mut column: usize = 0;
 
-
     let mut comment = false;
-
 
     let mut pushVar = false;
 
@@ -363,32 +385,33 @@ pub fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
     for sym_code in source_code {
         column += 1;
         if sym_code == 0xA {
-            if column == 1 { 
+            if column == 1 {
                 column = 0;
                 row += 1;
-                continue
+                continue;
             }
             column = 0;
             row += 1;
         }
 
         let symbol: char = sym_code as char;
-        
-        if symbol == ' ' { continue }
+
+        if symbol == ' ' {
+            continue;
+        }
 
         if symbol == ';' {
             comment = true;
-            continue
+            continue;
         }
         if comment {
             if sym_code == 0xA {
                 comment = false;
-                continue
+                continue;
             } else {
-                continue
+                continue;
             }
         }
-
 
         if !used_chars.contains(&symbol) {
             error(0, row, column, symbol)
@@ -403,12 +426,20 @@ pub fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
                 }
             }
 
-            if symbol == '|' { continue }
-            if isFunc && !parseSizeVar && !parseRetExpr && !parseIndentVar && !parseValueVar && !isFuncEnd {
+            if symbol == '|' {
+                continue;
+            }
+            if isFunc
+                && !parseSizeVar
+                && !parseRetExpr
+                && !parseIndentVar
+                && !parseValueVar
+                && !isFuncEnd
+            {
                 match symbol {
-                    'B'|'W'|'N'|'D' => parseSizeVar = true,
+                    'B' | 'W' | 'N' | 'D' => parseSizeVar = true,
                     'R' => parseRetExpr = true,
-                    'a'..='z'|'0'..='9' => parseIndentVar = true,
+                    'a'..='z' | '0'..='9' => parseIndentVar = true,
                     '#' => parseValueVar = true,
                     '\\' => isFuncEnd = true,
                     '\n' => (),
@@ -418,13 +449,13 @@ pub fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
 
             if parseSizeVar {
                 match symbol {
-                    'a'..='z'|'0'..='9' => {
+                    'a'..='z' | '0'..='9' => {
                         parseSizeVar = false;
                         pushSizeVar = true;
                         parseIndentVar = true;
-                    },
+                    }
                     'A'..='Z' => (),
-                    _ => unreachable!()
+                    _ => unreachable!(),
                 }
                 if !pushSizeVar {
                     SizeVarStr.push(symbol)
@@ -432,7 +463,7 @@ pub fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
                     pushSizeVar = false;
                     match get_size(SizeVarStr) {
                         Ok(sz) => SizeVar = sz,
-                        Err(_) => error(2, row, column, symbol)
+                        Err(_) => error(2, row, column, symbol),
                     }
                     SizeVarStr = String::new();
                 }
@@ -456,24 +487,26 @@ pub fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
                         parseValueVar = false;
                         pushVar = true;
                         pushValVar = true;
-                    },
-                    _ => unreachable!(symbol)
+                    }
+                    _ => unreachable!(symbol),
                 }
                 if pushValVar {
                     pushValVar = false;
                     ValVar = match SizeVar {
-                        Size::Byte => {
-                            match ValVarStr.parse::<u8>() {
-                                Ok(val) => Value::Byte(val),
-                                Err(_) => { error(3, row, column, symbol); Value::Byte(0) }
+                        Size::Byte => match ValVarStr.parse::<u8>() {
+                            Ok(val) => Value::Byte(val),
+                            Err(_) => {
+                                error(3, row, column, symbol);
+                                Value::Byte(0)
                             }
                         },
-                        Size::Word => {
-                            match ValVarStr.parse::<u16>() {
-                                Ok(val) => Value::Word(val),
-                                Err(_) => { error(3, row, column, symbol); Value::Word(0) }
+                        Size::Word => match ValVarStr.parse::<u16>() {
+                            Ok(val) => Value::Word(val),
+                            Err(_) => {
+                                error(3, row, column, symbol);
+                                Value::Word(0)
                             }
-                        }
+                        },
                     };
                     ValVarStr = String::new();
                 } else {
@@ -484,19 +517,19 @@ pub fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
             if parseRetExpr {
                 if !parseRetVar {
                     match symbol {
-                        'R'|'E'|'T' => (),
+                        'R' | 'E' | 'T' => (),
                         '[' => parseRetVar = true,
-                        _ => unreachable!()
+                        _ => unreachable!(),
                     }
                 } else {
                     match symbol {
-                        'a'..='z'|'0'..='9' => (),
+                        'a'..='z' | '0'..='9' => (),
                         ']' => {
                             parseRetVar = false;
                             parseRetExpr = false;
                             pushRetExpr = true;
-                        },
-                        _ => unreachable!()
+                        }
+                        _ => unreachable!(),
                     }
                     if pushRetExpr {
                         pushRetExpr = false;
@@ -507,7 +540,6 @@ pub fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
                     }
                 }
             }
-
 
             if pushVar {
                 pushVar = false;
@@ -521,26 +553,27 @@ pub fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
                 VarName = String::new();
             }
         } else {
-            if sym_code == 0xA { continue }
+            if sym_code == 0xA {
+                continue;
+            }
             if !parseRet && !parseArgs && !parseIndent {
                 match symbol {
-                    'B'|'W'|'N'|'D' => parseRet = true,
-                    'a'..='z'|'0'..='9' => parseIndent = true,
+                    'B' | 'W' | 'N' | 'D' => parseRet = true,
+                    'a'..='z' | '0'..='9' => parseIndent = true,
                     '[' => parseArgs = true,
-                    _ => unreachable!()
+                    _ => unreachable!(),
                 }
             }
 
-
             if parseRet {
                 match symbol {
-                    'a'..='z'|'0'..='9' => {
+                    'a'..='z' | '0'..='9' => {
                         parseRet = false;
                         pushRet = true;
                         parseIndent = true;
-                    },
+                    }
                     'A'..='Z' => (),
-                    _ => unreachable!()
+                    _ => unreachable!(),
                 }
                 if !pushRet {
                     SizeRetStr.push(symbol)
@@ -548,7 +581,7 @@ pub fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
                     pushRet = false;
                     match get_size(SizeRetStr) {
                         Ok(sz) => SizeRet = sz,
-                        Err(_) => error(2, row, column, symbol)
+                        Err(_) => error(2, row, column, symbol),
                     }
                     SizeRetStr = String::new();
                 }
@@ -568,27 +601,27 @@ pub fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
                 match symbol {
                     '[' => (),
                     'A'..='Z' => parseSizeArg = true,
-                    'a'..='z'|'0'..='9' => parseIndentArg = true,
-                    '|' => { 
+                    'a'..='z' | '0'..='9' => parseIndentArg = true,
+                    '|' => {
                         pushArg = true;
                         parseIndentArg = false;
-                    },
+                    }
                     ']' => {
                         pushArg = true;
                         parseArgs = false;
                         parseIndentArg = false;
                         isFunc = true;
-                    },
-                    _ => unreachable!()
+                    }
+                    _ => unreachable!(),
                 }
                 if parseSizeArg {
                     match symbol {
-                        'a'..='z'|'0'..='9' => {
+                        'a'..='z' | '0'..='9' => {
                             parseSizeArg = false;
                             parseIndentArg = true;
-                        },
+                        }
                         'A'..='Z' => (),
-                        _ => unreachable!()
+                        _ => unreachable!(),
                     }
                     if !parseIndentArg {
                         SizeArgStr.push(symbol);
@@ -622,47 +655,14 @@ pub fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
 
         if pushFunc {
             pushFunc = false;
-            let func = if arguments.len() > 0 {
-                if variables.len() > 0 {
-                    Function {
-                        name: Indent(FuncName),
-                        argc: arguments.len(),
-                        args: Some(arguments),
-                        ret_size: SizeRet,
-                        vars: Some(variables),
-                        ret_var: Indent(RetVar)
-                    }
-                } else {
-                    Function {
-                        name: Indent(FuncName),
-                        argc: arguments.len(),
-                        args: Some(arguments),
-                        ret_size: SizeRet,
-                        vars: None,
-                        ret_var: Indent(RetVar)
-                    }
-                }
-            } else {
-                if variables.len() > 0 {
-                    Function {
-                        name: Indent(FuncName),
-                        argc: arguments.len(),
-                        args: None,
-                        ret_size: SizeRet,
-                        vars: Some(variables),
-                        ret_var: Indent(RetVar)
-                    }
-                } else {
-                    Function {
-                        name: Indent(FuncName),
-                        argc: arguments.len(),
-                        args: None,
-                        ret_size: SizeRet,
-                        vars: None,
-                        ret_var: Indent(RetVar)
-                    }
-                }
-            }; 
+            let func = Function {
+                name: Indent(FuncName),
+                argc: arguments.len(),
+                args: arguments,
+                ret_size: SizeRet,
+                vars: variables,
+                ret_var: Indent(RetVar),
+            };
 
             FuncName = String::new();
             arguments = Vec::new();
@@ -692,7 +692,7 @@ pub fn lex_direct(code: Vec<u8>) -> Vec<Directive> {
     let mut DirIndentStr = String::new();
 
     let mut column: usize = 0;
-    let mut row:    usize = 1;
+    let mut row: usize = 1;
 
     for sym_code in code {
         column += 1;
@@ -708,7 +708,9 @@ pub fn lex_direct(code: Vec<u8>) -> Vec<Directive> {
 
         let symbol: char = sym_code as char;
 
-        if symbol == ' ' { continue }
+        if symbol == ' ' {
+            continue;
+        }
 
         if column == 1 && symbol == '!' {
             isDirective = true;
@@ -721,9 +723,9 @@ pub fn lex_direct(code: Vec<u8>) -> Vec<Directive> {
                     '\n' => {
                         isDirective = false;
                         pushDirective = true;
-                    },
+                    }
                     'A'..='Z' => parseDirective = true,
-                    _ => unreachable!()
+                    _ => unreachable!(),
                 }
             }
             if parseDirective {
@@ -731,7 +733,7 @@ pub fn lex_direct(code: Vec<u8>) -> Vec<Directive> {
                     match symbol {
                         '<' => parseDirArgs = true,
                         'A'..='Z' => parseDirType = true,
-                        _ => unreachable!()
+                        _ => unreachable!(),
                     }
                 }
                 if parseDirType {
@@ -740,12 +742,12 @@ pub fn lex_direct(code: Vec<u8>) -> Vec<Directive> {
                         '<' => {
                             parseDirArgs = true;
                             parseDirType = false;
-                        },
-                        '_'|'a'..='z'|'1'..='9' => {
+                        }
+                        '_' | 'a'..='z' | '1'..='9' => {
                             parseDirIndent = true;
-                            parseDirType   = false;
-                        },
-                        _ => error(0, row, column, symbol)
+                            parseDirType = false;
+                        }
+                        _ => error(0, row, column, symbol),
                     }
                 }
                 if parseDirIndent {
@@ -786,23 +788,20 @@ pub fn lex_direct(code: Vec<u8>) -> Vec<Directive> {
             if get_type_dir(DirTypeStr.clone()) {
                 match get_directive(DirTypeStr, DirIndentStr, DirArgs) {
                     Ok(dir) => directives.push(dir),
-                    Err(_) => error(6, row, column, symbol)
+                    Err(_) => error(6, row, column, symbol),
                 }
             } else {
                 error(5, row, column, symbol)
             }
-            
+
             DirTypeStr = String::new();
             DirIndentStr = String::new();
             DirArgs = Vec::new();
         }
     }
 
-
-    return directives
+    return directives;
 }
-
-
 
 /*
  * error codes:
@@ -824,9 +823,12 @@ fn error(err_code: u8, row: usize, column: usize, symbol: char) {
         3 => eprintln!("Failed to parse immediate value at {}:{}", row, column),
         4 => eprintln!("Incorrect function ar {}:{}", row, column),
         5 => eprintln!("Unknown directive at {}:{}", row, column),
-        6 => eprintln!("Failed to parse arguments of directive at {}:{}", row, column),
+        6 => eprintln!(
+            "Failed to parse arguments of directive at {}:{}",
+            row, column
+        ),
         7 => eprintln!("Unknown value size at {}:{}", row, column),
-        _ => panic!("Unreachable error code")
+        _ => panic!("Unreachable error code"),
     }
     std::process::exit(1);
 }
@@ -835,7 +837,7 @@ fn get_size(size_str: String) -> Result<Size, ()> {
     match size_str.as_str() {
         "BYTE" => Ok(Size::Byte),
         "WORD" => Ok(Size::Word),
-        _ => Err(())
+        _ => Err(()),
     }
 }
 
@@ -843,17 +845,19 @@ fn get_type_dir(dir: String) -> bool {
     match dir.as_str() {
         "USES" => true,
         "SET" => true,
-        _ => false
+        _ => false,
     }
 }
 
 fn get_directive(dir: String, indent: String, args: Vec<String>) -> Result<Directive, ()> {
     match dir.as_str() {
         "USES" => {
-            let arguments: Vec<Indent> = args.iter().map(| arg: &String | Indent((*arg).clone()) ).collect();
+            let arguments: Vec<Indent> = args
+                .iter()
+                .map(|arg: &String| Indent((*arg).clone()))
+                .collect();
             Ok(Directive::Use(arguments))
-        },
-        _ => Err(())
+        }
+        _ => Err(()),
     }
 }
-

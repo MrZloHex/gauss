@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[macro_export]
 macro_rules! pub_struct {
@@ -10,17 +10,16 @@ macro_rules! pub_struct {
     }
 }
 
-
 pub_struct!( Function {
     name: Indent,
-    args: Option<Vec<Argument>>,
+    args: Vec<Argument>,
     argc: usize,
     ret_size: Size,
-    vars: Option<Vec<Variable>>,
+    vars: Vec<Variable>,
     ret_var: Indent,
-}); 
+});
 
-pub_struct!( Argument {
+pub_struct!(Argument {
     name: Indent,
     size: Size,
 });
@@ -28,13 +27,11 @@ pub_struct!( Argument {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Indent(pub String);
 
-
 pub_struct!( FunctionCall {
     name: Indent,
     args: Option<Vec<Variable>>,
     argc: usize,
 });
-
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Directive {
@@ -44,42 +41,41 @@ pub enum Directive {
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub enum Size {
     Byte,
-    Word
+    Word,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum Value {
     Byte(u8),
-    Word(u16)
+    Word(u16),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ValueType {
     Immediate(Value),
     FunctionValue(FunctionCall),
-    Variable(Indent)
+    Variable(Indent),
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum Init {
     Initilized(Value),
-    Uninitilized
+    Uninitilized,
 }
 
-pub_struct!( Variable {
+pub_struct!(Variable {
     name: Indent,
     size: Size,
     init: Init,
 });
 
-pub_struct!( Assignment {
+pub_struct!(Assignment {
     var_name: Indent,
     val: ValueType,
 });
 
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Instruction {
     Variable(Variable),
-    Assignment(Assignment)
+    Assignment(Assignment),
 }

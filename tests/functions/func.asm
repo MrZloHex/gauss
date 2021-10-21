@@ -6,6 +6,23 @@ SECTION .data
 	myvar_:	dw 420
 
 SECTION .text
+	eight_:
+		push rbp
+		mov  rbp,	rsp
+		sub  rsp,	1
+		leave
+		ret
+	retsame_:
+		push rbp
+		mov  rbp,	rsp
+		pop  rbp
+		ret
+	five_:
+		push rbp
+		mov  rbp,	rsp
+		sub  rsp,	1
+		leave
+		ret
 	global _start
 	_start:
 		mov	BYTE [eight2_], 69
