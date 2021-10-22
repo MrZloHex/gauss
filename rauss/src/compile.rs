@@ -61,7 +61,6 @@ pub fn into_nasm(
             code.push_str(format!("\t\tsub  rsp,\t{}\n", size_loc_vars).as_str());
         }
 
-
         // MAIN
 
 
