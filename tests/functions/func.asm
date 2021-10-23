@@ -9,7 +9,9 @@ SECTION .text
 	eight_:
 		push rbp
 		mov  rbp,	rsp
-		sub  rsp,	1
+		sub  rsp,	3
+		mov  BYTE [rbp-1],	8
+		mov  WORD [rbp-3],	2345
 		leave
 		ret
 	retsame_:
@@ -21,6 +23,7 @@ SECTION .text
 		push rbp
 		mov  rbp,	rsp
 		sub  rsp,	1
+		mov  BYTE [rbp-1],	5
 		leave
 		ret
 	global _start

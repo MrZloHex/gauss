@@ -24,7 +24,7 @@ pub_struct!(Argument {
     size: Size,
 });
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Indent(pub String);
 
 pub_struct!( FunctionCall {

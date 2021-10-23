@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::types::*;
 
 pub fn into_nasm(
@@ -44,13 +46,16 @@ pub fn into_nasm(
 
     // functions
     for function in functions {
+        let mut vars_offset: HashMap<Indent, u64> = HashMap::new();
+        let mut vars_p: u64 = 0;
+
         code.push_str(format!("\t{}_:\n", function.name.0).as_str());
         code.push_str("\t\tpush rbp\n");
         code.push_str("\t\tmov  rbp,\trsp\n");
 
         let mut size_loc_vars: u64 = 0;
         if !function.vars.is_empty() {
-            for var in function.vars {
+            for var in function.vars.clone() {
                 match var.size {
                     Size::Byte => size_loc_vars += 1,
                     Size::Word => size_loc_vars += 2,
@@ -62,6 +67,29 @@ pub fn into_nasm(
         }
 
         // MAIN
+        for var in function.vars {
+            // add to vars_offset
+            match var.size {
+                Size::Byte => {
+                    vars_offset.insert(var.name.clone(), vars_p+1);
+                    vars_p += 1;
+                },
+                Size::Word => {
+                    vars_offset.insert(var.name.clone(), vars_p+2);
+                    vars_p += 2;
+                }
+            }
+            match var.init {
+                Init::Initilized(value) => {
+                    let offset = vars_offset.get(&var.name).unwrap();
+                    match value {
+                        Value::Byte(val) => code.push_str(format!("\t\tmov  BYTE [rbp-{}],\t{}\n", offset, val).as_str()),
+                        Value::Word(val) => code.push_str(format!("\t\tmov  WORD [rbp-{}],\t{}\n", offset, val).as_str()),
+                    }
+                },
+                _ => (),
+            }
+        }
 
 
         if size_loc_vars == 0 {

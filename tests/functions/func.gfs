@@ -2,6 +2,7 @@
 
 BYTE eight: [ ]
  | BYTE res: #8
+ | WORD test: #2345
  | RET [ res ]
  \_
 

@@ -64,6 +64,7 @@ fn main() {
             let functions_code = load_file(fs_filename);
             functions.append(&mut lex_func(functions_code));
         }
+        // for func in &functions { println!("{:?}", func) }
         if !analyze_func(&functions) {
             eprintln!("\nFAILED TO CHECK FUNCTIONS");
             std::process::exit(1);
