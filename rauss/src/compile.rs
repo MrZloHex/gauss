@@ -91,6 +91,14 @@ pub fn into_nasm(
             }
         }
 
+        // RET
+        code.push_str("\t\tmov  rax,\t 0\n");
+        let offset = vars_offset.get(&function.ret_var).unwrap();
+        match function.ret_size {
+            Size::Byte => code.push_str(format!("\t\tmov  al,\tBYTE [rbp-{}]\n", offset).as_str()),
+            Size::Word => code.push_str(format!("\t\tmov  ax,\tWORD [rbp-{}]\n", offset).as_str())
+        }
+
 
         if size_loc_vars == 0 {
             code.push_str("\t\tpop  rbp\n");

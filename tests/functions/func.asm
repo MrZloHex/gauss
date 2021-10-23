@@ -12,18 +12,17 @@ SECTION .text
 		sub  rsp,	3
 		mov  BYTE [rbp-1],	8
 		mov  WORD [rbp-3],	2345
+		mov  rax,	 0
+		mov  al,	BYTE [rbp-1]
 		leave
-		ret
-	retsame_:
-		push rbp
-		mov  rbp,	rsp
-		pop  rbp
 		ret
 	five_:
 		push rbp
 		mov  rbp,	rsp
 		sub  rsp,	1
 		mov  BYTE [rbp-1],	5
+		mov  rax,	 0
+		mov  al,	BYTE [rbp-1]
 		leave
 		ret
 	global _start

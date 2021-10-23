@@ -6,9 +6,9 @@ BYTE eight: [ ]
  | RET [ res ]
  \_
 
-WORD retsame: [ WORD number ]
- | RET [number]
- \_
+; WORD retsame: [ WORD number ]
+;  | RET [number]
+;  \_
 
 BYTE five: [ ]
  | BYTE res: #5
