@@ -1,6 +1,7 @@
 !USES </home/zs/rimfupl/tests/functions/func.gfs>
 
 ; comment
+; TODO: implemet function call
 
 WORD myvar: #420
 
