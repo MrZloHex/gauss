@@ -1,5 +1,6 @@
 SECTION .bss
 	eight2_:	resb 1
+	var_:	resw 1
 	eight1_:	resb 1
 
 SECTION .data
@@ -28,8 +29,9 @@ SECTION .text
 	global _start
 	_start:
 		mov	BYTE [eight2_], 69
-		mov	al, BYTE [eight2_]
-		mov	BYTE [eight1_], al
+		mov	ax, WORD [myvar_]
+		mov	WORD [var_], ax
+		mov	BYTE [eight1_], 0
 
 		mov	rax, 0x3c
 		mov	rdi, 0

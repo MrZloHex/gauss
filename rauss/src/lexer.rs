@@ -45,13 +45,8 @@ pub fn lex_instr(source_code: Vec<u8>) -> Vec<Instruction> {
     let mut parseVarIndent = false;
     let mut parseValueType = false;
     let mut VarIndent = String::new();
-    let mut parseImmValue = false;
-    let mut VarValStr = String::new();
-    let mut VarVal = ValueType::Immediate(Value::Byte(0));
+    let mut ValAssStr = String::new();
     let mut AssVal = ValueType::Immediate(Value::Byte(0));
-    let mut parseValVarIndent = false;
-    let mut ValVarIndent = String::new();
-    let mut parseFuncIndent = false;
     let mut pushAssignment = false;
 
     let mut column: usize = 0;
@@ -244,57 +239,21 @@ pub fn lex_instr(source_code: Vec<u8>) -> Vec<Instruction> {
                 }
             }
             if parseValueType {
-                match symbol {
-                    '#' => parseImmValue = true,
-                    '@' => parseFuncIndent = true,
-                    'a'..='z' | '0'..='9' => parseValVarIndent = true,
-                    _ => unreachable!(symbol),
-                }
-                parseValueType = false;
-            }
-            if !parseValueType {
-                if parseImmValue {
-                    if symbol == '#' {
-                        continue;
-                    }
-                    if symbol == '\n' {
-                        parseImmValue = false;
-                        let value = match VarValStr.parse::<u64>() {
-                            Ok(val) => val,
-                            Err(_) => {
-                                error(3, row, column, symbol);
-                                0
-                            }
-                        };
-                        if value < 256 {
-                            VarVal = ValueType::Immediate(Value::Byte(value as u8))
-                        } else if value < 65536 {
-                            VarVal = ValueType::Immediate(Value::Word(value as u16))
-                        } else {
-                            error(7, row, column, symbol)
+                if symbol == '\n' {
+                    pushAssignment = true;
+                    parseValueType = false;
+                    AssVal = match get_value_type(ValAssStr) {
+                        Ok(val) => val,
+                        Err(err_code) => {
+                            error(err_code, row, column, symbol);
+                            ValueType::Immediate(Value::Byte(0))
                         }
-                        VarValStr = String::new();
-                        AssVal = VarVal.clone();
-                        pushAssignment = true;
-                    } else {
-                        VarValStr.push(symbol)
-                    }
-                } else if parseFuncIndent {
-                    if symbol == '@' {
-                        continue;
-                    }
-                } else if parseValVarIndent {
-                    if symbol == '\n' {
-                        parseValVarIndent = false;
-                        AssVal = ValueType::Variable(Indent(ValVarIndent));
-                        ValVarIndent = String::new();
-                        pushAssignment = true;
-                    } else {
-                        ValVarIndent.push(symbol);
-                    }
+                    };
+                    ValAssStr = String::new();
+                } else {
+                    ValAssStr.push(symbol);
                 }
             }
-
             if pushAssignment {
                 pushAssignment = false;
                 isAssignment = false;
@@ -310,6 +269,77 @@ pub fn lex_instr(source_code: Vec<u8>) -> Vec<Instruction> {
     }
 
     instructions
+}
+
+fn get_value_type(code: String) -> Result<ValueType, u8> {
+    let mut typeValueType: u8 = 0;
+    let mut code: String = code;
+    let mut value_type = ValueType::Immediate(Value::Byte(0));
+    
+    match code.as_bytes()[0] as char {
+        '#' => typeValueType = 1,
+        '@' => typeValueType = 2,
+        'a'..='z'|'1'..='9' => typeValueType = 3,
+        _ => unreachable!()
+    }
+    
+    // Immediate Value
+    if typeValueType == 1 {
+        code.remove(0);
+        let value = match code.parse::<u64>() {
+            Ok(val) => val,
+            Err(_) => return Err(3),
+        };
+        if value < 256 {
+            value_type = ValueType::Immediate(Value::Byte(value as u8))
+        } else if value < 65536 {
+            value_type = ValueType::Immediate(Value::Word(value as u16))
+        } else {
+            return Err(7);
+        }
+    }
+    // Function Call
+    else if typeValueType == 2 {
+        code.remove(0);
+        let (indent, code_s) = code.split_once("[").unwrap();
+        let mut code = code_s.to_string();
+        code.insert(0, '[');
+
+        let mut args: Vec<ValueType> = Vec::new();
+        let mut arg_str = String::new();
+        let mut depth: u8 = 0;
+        for ch in code.chars() {
+            if depth == 1 {
+                if ch == '|' || ch == ']' {
+                    if !arg_str.is_empty() {
+                        let arg = match get_value_type(arg_str) {
+                            Ok(val) => val,
+                            Err(err_code) => return Err(err_code)
+                        };
+                        args.push(arg);
+                        arg_str = String::new();
+                        continue;
+                    }
+                }
+            }
+            if depth != 0 { arg_str.push(ch) }
+
+
+            if ch == '[' { depth += 1 }
+            if ch == ']' { depth -= 1 }
+        }
+        value_type = ValueType::FunctionValue(FunctionCall {
+            name: Indent(indent.to_string()),
+            argc: args.len(),
+            args
+        })
+    }
+    // Variable 
+    else if typeValueType == 3 {
+        value_type = ValueType::Variable(Indent(code));
+    } else { unreachable!() }
+    
+    Ok(value_type)
 }
 
 pub fn lex_func(source_code: Vec<u8>) -> Vec<Function> {

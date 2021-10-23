@@ -29,7 +29,7 @@ pub struct Indent(pub String);
 
 pub_struct!( FunctionCall {
     name: Indent,
-    args: Option<Vec<Variable>>,
+    args: Vec<ValueType>,
     argc: usize,
 });
 
