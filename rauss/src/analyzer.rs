@@ -107,7 +107,13 @@ pub fn analyze_instr(
                 }
 
                 if is_such_func {
-
+                    let size_var = get_size_var(&variables, assignment.var_name.clone());
+                    if size_var != ret_size {
+                        error(2, assignment.var_name.clone());
+                    }
+                    if argc != func_call.argc {
+                        error(9, func_call_name)
+                    }
                 } else {
                     error(8, func_call_name);
                 }
@@ -223,6 +229,7 @@ pub fn analyze_func(functions: &Vec<Function>) -> bool {
  *  - 6: Returning variable with incorrect size
  *  - 7: Returning undeclared variable
  *  - 8: Calling undeclared function
+ *  - 9: Incorrect quantity of provided arguments
  *
  */
 
@@ -253,6 +260,7 @@ where
         ),
         7 => eprintln!("Returning undeclared variable at `{:?}`", problem_struct),
         8 => eprintln!("Calling undeclared function `{:?}`", problem_struct),
+        9 => eprintln!("Incorrect quantity of provided arguments at `{:?}`", problem_struct),
         _ => unreachable!(),
     }
     std::process::exit(1);
