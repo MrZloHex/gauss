@@ -272,8 +272,10 @@ pub fn lex_instr(source_code: Vec<u8>) -> Vec<Instruction> {
 }
 
 fn get_value_type(code: String) -> Result<ValueType, u8> {
+    #[allow(unused_assignments)]
     let mut typeValueType: u8 = 0;
     let mut code: String = code;
+    #[allow(unused_assignments)]
     let mut value_type = ValueType::Immediate(Value::Byte(0));
     
     match code.as_bytes()[0] as char {
