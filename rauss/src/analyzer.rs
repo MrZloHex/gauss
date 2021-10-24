@@ -2,7 +2,7 @@ use crate::types::*;
 
 pub fn analyze_instr(
     instructions_p: &Vec<Instruction>,
-    _functions_p: &Vec<Function>,
+    functions_p: &Vec<Function>,
 ) -> (bool, Vec<Variable>) {
     let variables = get_vars(instructions_p);
     let assignments = get_assign(instructions_p);
@@ -91,7 +91,27 @@ pub fn analyze_instr(
                     error(2, assignment.var_name.clone())
                 }
             }
-            _ => unreachable!(),
+            ValueType::FunctionValue(func_call) => {
+                let func_call_name = func_call.name.clone();
+                let mut is_such_func = false;
+                let mut argc: usize  = 0;
+                let mut args: Vec<Argument> = Vec::new();
+                let mut ret_size = Size::Byte;
+                for function in functions_p {
+                    if function.name == func_call_name {
+                        is_such_func = true;
+                        argc = function.argc.clone();
+                        args = function.args.clone();
+                        ret_size = function.ret_size;
+                    }
+                }
+
+                if is_such_func {
+
+                } else {
+                    error(8, func_call_name);
+                }
+            }
         }
     }
 
@@ -202,6 +222,7 @@ pub fn analyze_func(functions: &Vec<Function>) -> bool {
  *  - 5: Assigning value of uninitilized variable
  *  - 6: Returning variable with incorrect size
  *  - 7: Returning undeclared variable
+ *  - 8: Calling undeclared function
  *
  */
 
@@ -231,6 +252,7 @@ where
             problem_struct
         ),
         7 => eprintln!("Returning undeclared variable at `{:?}`", problem_struct),
+        8 => eprintln!("Calling undeclared function `{:?}`", problem_struct),
         _ => unreachable!(),
     }
     std::process::exit(1);

@@ -54,9 +54,9 @@ fn main() {
     }
 
     let instructions = lex_instr(code);
-    for instr in &instructions {
-        println!("{:?}", instr);
-    }
+    // for instr in &instructions {
+    //     println!("{:?}", instr);
+    // }
 
     if is_functions {
         for fs in filenames_func {
