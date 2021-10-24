@@ -114,6 +114,29 @@ pub fn analyze_instr(
                     if argc != func_call.argc {
                         error(9, func_call_name)
                     }
+                    for (f_arg, arg) in args.iter().zip(func_call.args.iter()) {
+                        let size = f_arg.size;
+                        match arg {
+                            ValueType::Immediate(val) => {
+                                match val {
+                                    Value::Byte(_) => if size != Size::Byte { error(10, f_arg.name.clone()) },
+                                    Value::Word(_) => if size != Size::Word { error(10, f_arg.name.clone()) }
+                                }
+                            },
+                            ValueType::Variable(var) => {
+                                let var_size = get_size_var(&variables, (*var).clone());
+                                if var_size != size {
+                                    error(10, f_arg.name.clone());
+                                }
+                            },
+                            ValueType::FunctionValue(fn_c) => {
+                                let f_size = get_size_function(functions_p, fn_c.name.clone());
+                                if f_size != size {
+                                    error(10, f_arg.name.clone());
+                                }
+                            }
+                        }
+                    }   
                 } else {
                     error(8, func_call_name);
                 }
@@ -220,16 +243,17 @@ pub fn analyze_func(functions: &Vec<Function>) -> bool {
 
 /*  Error codes:
  *
- *  - 0: Size of variable not corresponds to it's value
- *  - 1: Variable name is already used
- *  - 2: Assignment to different sizes
- *  - 3: ASsignment to undeclared variable
- *  - 4: Assigning value of undeclared variable
- *  - 5: Assigning value of uninitilized variable
- *  - 6: Returning variable with incorrect size
- *  - 7: Returning undeclared variable
- *  - 8: Calling undeclared function
- *  - 9: Incorrect quantity of provided arguments
+ *  - 0:  Size of variable not corresponds to it's value
+ *  - 1:  Variable name is already used
+ *  - 2:  Assignment to different sizes
+ *  - 3:  ASsignment to undeclared variable
+ *  - 4:  Assigning value of undeclared variable
+ *  - 5:  Assigning value of uninitilized variable
+ *  - 6:  Returning variable with incorrect size
+ *  - 7:  Returning undeclared variable
+ *  - 8:  Calling undeclared function
+ *  - 9:  Incorrect quantity of provided arguments
+ *  - 10: Incorrect argument size
  *
  */
 
@@ -261,6 +285,7 @@ where
         7 => eprintln!("Returning undeclared variable at `{:?}`", problem_struct),
         8 => eprintln!("Calling undeclared function `{:?}`", problem_struct),
         9 => eprintln!("Incorrect quantity of provided arguments at `{:?}`", problem_struct),
+        10 => eprintln!("Incorrect argument size `{:?}`", problem_struct),
         _ => unreachable!(),
     }
     std::process::exit(1);
@@ -306,6 +331,15 @@ fn get_size_var(vars: &Vec<Variable>, var_name: Indent) -> Size {
     for var in vars {
         if var.name == var_name {
             return var.size.clone();
+        }
+    }
+    unreachable!();
+}
+
+fn get_size_function(funcs: &Vec<Function>, func_name: Indent) -> Size {
+    for func in funcs {
+        if func.name == func_name {
+            return func.ret_size.clone();
         }
     }
     unreachable!();
