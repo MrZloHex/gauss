@@ -12,5 +12,5 @@ WORD var
 var = myvar
 
 BYTE eight1
-eight1 = @eight[ @eight[ #420 ] ]
+eight1 = @eight[ ]
 

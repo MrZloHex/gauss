@@ -1,6 +1,6 @@
 ; simple functions
 
-BYTE eight: [ WORD smth ]
+BYTE eight: [ ]
  | BYTE res: #8
  | WORD test: #2345
  | RET [ res ]
