@@ -15,4 +15,4 @@ BYTE eight1
 eight1 = @eight[ ]
 
 BYTE five1
-five1 = @five[ eight1 ]
+five1 = @five[ @five [@eight[] | #420 ] | var ]

@@ -29,16 +29,30 @@ SECTION .text
 		ret
 	global _start
 	_start:
+		; Assigning value `69` to variable `eight2`
 		mov	BYTE [eight2_], 69
+		; Assigning variable `myvar` to variable `var`
 		mov  ax, WORD [myvar_]
 		mov  WORD [var_], ax
+		; Assigning result of function `eight` to variable `eight1`
 		call eight_
+		add  rsp, 8 * 0
 		mov	BYTE [eight1_], al
-		mov  al, BYTE [eight1_]
+		; Assigning result of function `five` to variable `five1`
+		call eight_
+		add  rsp, 8 * 2
+		push rax
+		push 420
+		call five_
+		add  rsp, 8 * 2
+		push rax
+		mov  ax, WORD [var_]
 		push rax
 		call five_
+		add  rsp, 8 * 2
 		mov	BYTE [five1_], al
 
+		; Exit syscall
 		mov	rax, 0x3c
 		mov	rdi, 0
 		syscall

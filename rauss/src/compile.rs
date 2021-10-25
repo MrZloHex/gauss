@@ -119,6 +119,7 @@ pub fn into_nasm(
                         Value::Byte(v) => (v as u16, "BYTE"),
                         Value::Word(v) => (v, "WORD"),
                     };
+                    code.push_str(format!("\t\t; Assigning value `{}` to variable `{}`\n", value.clone(), assign.var_name.0.clone()).as_str());
                     code.push_str(
                         format!("\t\tmov\t{} [{}_], {}\n", size, assign.var_name.0, value).as_str(),
                     )
@@ -129,6 +130,7 @@ pub fn into_nasm(
                         Size::Byte => ("al", "BYTE"),
                         Size::Word => ("ax", "WORD"),
                     };
+                    code.push_str(format!("\t\t; Assigning variable `{}` to variable `{}`\n", var_name.0.clone(), assign.var_name.0.clone()).as_str());
                     code.push_str(
                         format!("\t\tmov  {}, {} [{}_]\n", reg, size, var_name.0).as_str(),
                     );
@@ -137,31 +139,14 @@ pub fn into_nasm(
                     )
                 }
                 ValueType::FunctionValue(func_call) => {
-                    for arg in func_call.args {
-                        match arg {
-                            ValueType::Immediate(val) => {
-                                match val {
-                                    Value::Byte(v) => code.push_str(format!("\t\tpush {}\n", v).as_str()),
-                                    Value::Word(v) => code.push_str(format!("\t\tpush {}\n", v).as_str()),
-                                }
-                            },
-                            ValueType::Variable(var_in) => {
-                                let var = get_variable(&variables, var_in);
-                                match var.size {
-                                    Size::Byte => code.push_str(format!("\t\tmov  al, BYTE [{}_]\n", var.name.0).as_str()),
-                                    Size::Word => code.push_str(format!("\t\tmov  ax, WORD [{}_]\n", var.name.0).as_str()),
-                                }
-                                code.push_str("\t\tpush rax\n");
-                            },
-                            _ => unreachable!()
-                        }
-                    }
+                    code.push_str(format!("\t\t; Assigning result of function `{}` to variable `{}`\n", func_call.name.0.clone(), assign.var_name.0.clone()).as_str());
+                    code.push_str(pre_fn_args(func_call.clone(), &variables).as_str());
                     let (reg, size) = match get_size_variable(&variables, assign.var_name.clone()) {
                         Size::Byte => ("al", "BYTE"),
                         Size::Word => ("ax", "WORD"),
                     };
-
                     code.push_str(format!("\t\tcall {}_\n", func_call.name.0).as_str());
+                    code.push_str(post_fn_args(func_call.argc).as_str());
                     code.push_str(format!("\t\tmov\t{} [{}_], {}\n", size, assign.var_name.0, reg).as_str());
                 },
             },
@@ -170,7 +155,8 @@ pub fn into_nasm(
     }
     code.push('\n');
 
-    // exi t syscall
+    // exit syscall
+    code.push_str("\t\t; Exit syscall\n");
     code.push_str("\t\tmov\trax, 0x3c\n");
     code.push_str("\t\tmov\trdi, 0\n");
     code.push_str("\t\tsyscall\n");
@@ -180,6 +166,41 @@ pub fn into_nasm(
     // print!("NASM\n{}", code);
     code
 }
+
+
+fn pre_fn_args(func_call: FunctionCall, vars_p: &Vec<Variable>) -> String {
+    let mut code = String::new();
+    for arg in func_call.args {
+        match arg {
+            ValueType::Immediate(val) => {
+                match val {
+                    Value::Byte(v) => code.push_str(format!("\t\tpush {}\n", v).as_str()),
+                    Value::Word(v) => code.push_str(format!("\t\tpush {}\n", v).as_str()),
+                }
+            },
+            ValueType::Variable(var_in) => {
+                let var = get_variable(vars_p, var_in);
+                match var.size {
+                    Size::Byte => code.push_str(format!("\t\tmov  al, BYTE [{}_]\n", var.name.0).as_str()),
+                    Size::Word => code.push_str(format!("\t\tmov  ax, WORD [{}_]\n", var.name.0).as_str()),
+                }
+                code.push_str("\t\tpush rax\n");
+            },
+            ValueType::FunctionValue(f_c) => {
+                code.push_str(pre_fn_args(f_c.clone(), &vars_p.clone()).as_str());
+                code.push_str(format!("\t\tcall {}_\n", f_c.name.0).as_str());
+                code.push_str(post_fn_args(func_call.argc).as_str());
+                code.push_str("\t\tpush rax\n");
+            }
+        }
+    };
+    code
+}
+
+fn post_fn_args(argc: usize) -> String {
+    format!("\t\tadd  rsp, 8 * {}\n", argc)
+}
+
 
 fn get_un_init_vars(vars: &Vec<Variable>) -> (Vec<Variable>, Vec<Variable>) {
     let mut u_vars: Vec<Variable> = Vec::new();

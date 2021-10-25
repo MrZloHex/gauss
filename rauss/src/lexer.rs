@@ -881,7 +881,7 @@ fn get_type_dir(dir: String) -> bool {
     }
 }
 
-fn get_directive(dir: String, indent: String, args: Vec<String>) -> Result<Directive, ()> {
+fn get_directive(dir: String, _indent: String, args: Vec<String>) -> Result<Directive, ()> {
     match dir.as_str() {
         "USES" => {
             let arguments: Vec<Indent> = args
