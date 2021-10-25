@@ -18,6 +18,16 @@ SECTION .text
 		mov  al,	BYTE [rbp-1]
 		leave
 		ret
+	retsame_:
+		push rbp
+		mov  rbp,	rsp
+		sub  rsp,	2
+		mov  rax, QWORD [rbp+16]
+		mov  WORD [rbp-2], ax
+		mov  rax,	 0
+		mov  ax,	WORD [rbp-2]
+		leave
+		ret
 	five_:
 		push rbp
 		mov  rbp,	rsp
@@ -47,6 +57,9 @@ SECTION .text
 		add  rsp, 8 * 0
 		push rax
 		push 420
+		call retsame_
+		add  rsp, 8 * 1
+		push rax
 		call five_
 		add  rsp, 8 * 2
 		push rax
