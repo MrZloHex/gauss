@@ -1,6 +1,6 @@
 # GAUSS
 
-Low-level programming language with interesting way of indents. Why it's has name `Guass`? -Know only noone, maybe) If you like low-level style of programming and you always wanted to name variables like `123` so __gauss__ it's yours programming lnaguage! (i'm not 100% sure, sorry)
+Low-level programming language with interesting way of indents. Why it's has name _guass_? -Know only noone, maybe) If you like low-level style of programming and you always wanted to name variables like `123` so __gauss__ it's yours programming lnaguage! (i'm not 100% sure, sorry)
 
 ## The Use Case for The Language
 
