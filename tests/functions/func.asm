@@ -21,10 +21,14 @@ SECTION .text
 	five_:
 		push rbp
 		mov  rbp,	rsp
-		sub  rsp,	1
-		mov  BYTE [rbp-1],	5
+		sub  rsp,	4
+		mov  rax, QWORD [rbp+16]
+		mov  BYTE [rbp-1], al
+		mov  rax, QWORD [rbp+24]
+		mov  WORD [rbp-3], ax
+		mov  BYTE [rbp-4],	5
 		mov  rax,	 0
-		mov  al,	BYTE [rbp-1]
+		mov  al,	BYTE [rbp-4]
 		leave
 		ret
 	global _start
@@ -40,7 +44,7 @@ SECTION .text
 		mov	BYTE [eight1_], al
 		; Assigning result of function `five` to variable `five1`
 		call eight_
-		add  rsp, 8 * 2
+		add  rsp, 8 * 0
 		push rax
 		push 420
 		call five_

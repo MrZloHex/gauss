@@ -1,0 +1,63 @@
+     1                                  SECTION .bss
+     2 00000000 ??                      	eight2_:	resb 1
+     3 00000001 ????                    	var_:	resw 1
+     4 00000003 ??                      	eight1_:	resb 1
+     5 00000004 ??                      	five1_:	resb 1
+     6                                  
+     7                                  SECTION .data
+     8 00000000 A401                    	myvar_:	dw 420
+     9                                  
+    10                                  SECTION .text
+    11                                  	eight_:
+    12 00000000 55                      		push rbp
+    13 00000001 4889E5                  		mov  rbp,	rsp
+    14 00000004 4883EC03                		sub  rsp,	3
+    15 00000008 C645FF08                		mov  BYTE [rbp-1],	8
+    16 0000000C 66C745FD2909            		mov  WORD [rbp-3],	2345
+    17 00000012 B800000000              		mov  rax,	 0
+    18 00000017 8A45FF                  		mov  al,	BYTE [rbp-1]
+    19 0000001A C9                      		leave
+    20 0000001B C3                      		ret
+    21                                  	five_:
+    22 0000001C 55                      		push rbp
+    23 0000001D 4889E5                  		mov  rbp,	rsp
+    24 00000020 4883EC04                		sub  rsp,	4
+    25 00000024 488B442410              		mov  rax, QWORD [rsp+16]
+    26 00000029 8845FF                  		mov  BYTE [rbp-1], al
+    27 0000002C 488B442420              		mov  rax, QWORD [rsp+32]
+    28 00000031 668945FD                		mov  WORD [rbp-3], ax
+    29 00000035 C645FC05                		mov  BYTE [rbp-4],	5
+    30 00000039 B800000000              		mov  rax,	 0
+    31 0000003E 8A45FC                  		mov  al,	BYTE [rbp-4]
+    32 00000041 C9                      		leave
+    33 00000042 C3                      		ret
+    34                                  	global _start
+    35                                  	_start:
+    36                                  		; Assigning value `69` to variable `eight2`
+    37 00000043 C60425[00000000]45      		mov	BYTE [eight2_], 69
+    38                                  		; Assigning variable `myvar` to variable `var`
+    39 0000004B 668B0425[00000000]      		mov  ax, WORD [myvar_]
+    40 00000053 66890425[01000000]      		mov  WORD [var_], ax
+    41                                  		; Assigning result of function `eight` to variable `eight1`
+    42 0000005B E8A0FFFFFF              		call eight_
+    43 00000060 4883C400                		add  rsp, 8 * 0
+    44 00000064 880425[03000000]        		mov	BYTE [eight1_], al
+    45                                  		; Assigning result of function `five` to variable `five1`
+    46 0000006B E890FFFFFF              		call eight_
+    47 00000070 4883C400                		add  rsp, 8 * 0
+    48 00000074 50                      		push rax
+    49 00000075 68A4010000              		push 420
+    50 0000007A E89DFFFFFF              		call five_
+    51 0000007F 4883C410                		add  rsp, 8 * 2
+    52 00000083 50                      		push rax
+    53 00000084 668B0425[01000000]      		mov  ax, WORD [var_]
+    54 0000008C 50                      		push rax
+    55 0000008D E88AFFFFFF              		call five_
+    56 00000092 4883C410                		add  rsp, 8 * 2
+    57 00000096 880425[04000000]        		mov	BYTE [five1_], al
+    58                                  
+    59                                  		; Exit syscall
+    60 0000009D B83C000000              		mov	rax, 0x3c
+    61 000000A2 BF00000000              		mov	rdi, 0
+    62 000000A7 0F05                    		syscall
+    63                                  

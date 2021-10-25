@@ -47,23 +47,52 @@ pub fn into_nasm(
     // functions
     for function in functions {
         let mut vars_offset: HashMap<Indent, u64> = HashMap::new();
+        let mut args_offset: HashMap<Indent, u64> = HashMap::new();
         let mut vars_p: u64 = 0;
+        let mut args_p: u64 = 0;
 
         code.push_str(format!("\t{}_:\n", function.name.0).as_str());
         code.push_str("\t\tpush rbp\n");
         code.push_str("\t\tmov  rbp,\trsp\n");
 
+
+        // Set offset betwen RBP and RSP for local vars
         let mut size_loc_vars: u64 = 0;
-        if !function.vars.is_empty() {
-            for var in function.vars.clone() {
-                match var.size {
-                    Size::Byte => size_loc_vars += 1,
-                    Size::Word => size_loc_vars += 2,
-                }
+        for var in function.vars.clone() {
+            match var.size {
+                Size::Byte => size_loc_vars += 1,
+                Size::Word => size_loc_vars += 2,
             }
         }
-        if size_loc_vars != 0 {
-            code.push_str(format!("\t\tsub  rsp,\t{}\n", size_loc_vars).as_str());
+        let mut size_args: u64 = 0;
+        for arg in function.args.clone() {
+            match arg.size {
+                Size::Byte => size_args += 1,
+                Size::Word => size_args += 2,
+            }
+        }
+        code.push_str(format!("\t\tsub  rsp,\t{}\n", size_loc_vars + size_args).as_str());
+
+        // Calculatin offset from arguments and local vars
+        vars_p += size_args;
+
+        // Save function args
+        for (i, arg) in function.args.iter().enumerate() {
+            let (size, reg) = match arg.size {
+                Size::Byte => {
+                    args_offset.insert(arg.name.clone(), args_p+1);
+                    args_p += 1;
+                    ("BYTE", "al")
+                },
+                Size::Word => {
+                    args_offset.insert(arg.name.clone(), args_p+2);
+                    args_p += 2;
+                    ("WORD", "ax")
+                }
+            };
+            let offset = args_offset.get(&arg.name).unwrap();
+            code.push_str(format!("\t\tmov  rax, QWORD [rbp+{}]\n", (8 * (i+1)) + 8).as_str());
+            code.push_str(format!("\t\tmov  {} [rbp-{}], {}\n", size, offset, reg).as_str());
         }
 
         // MAIN
@@ -189,7 +218,7 @@ fn pre_fn_args(func_call: FunctionCall, vars_p: &Vec<Variable>) -> String {
             ValueType::FunctionValue(f_c) => {
                 code.push_str(pre_fn_args(f_c.clone(), &vars_p.clone()).as_str());
                 code.push_str(format!("\t\tcall {}_\n", f_c.name.0).as_str());
-                code.push_str(post_fn_args(func_call.argc).as_str());
+                code.push_str(post_fn_args(f_c.argc).as_str());
                 code.push_str("\t\tpush rax\n");
             }
         }
