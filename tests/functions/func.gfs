@@ -10,7 +10,7 @@ BYTE eight: [ ]
 ;  | RET [number]
 ;  \_
 
-BYTE five: [ ]
+BYTE five: [ BYTE qwe ]
  | BYTE res: #5
  | RET [ res ]
  \_

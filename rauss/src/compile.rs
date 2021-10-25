@@ -130,13 +130,40 @@ pub fn into_nasm(
                         Size::Word => ("ax", "WORD"),
                     };
                     code.push_str(
-                        format!("\t\tmov\t{}, {} [{}_]\n", reg, size, var_name.0).as_str(),
+                        format!("\t\tmov  {}, {} [{}_]\n", reg, size, var_name.0).as_str(),
                     );
                     code.push_str(
-                        format!("\t\tmov\t{} [{}_], {}\n", size, assign.var_name.0, reg).as_str(),
+                        format!("\t\tmov  {} [{}_], {}\n", size, assign.var_name.0, reg).as_str(),
                     )
                 }
-                _ => unreachable!(),
+                ValueType::FunctionValue(func_call) => {
+                    for arg in func_call.args {
+                        match arg {
+                            ValueType::Immediate(val) => {
+                                match val {
+                                    Value::Byte(v) => code.push_str(format!("\t\tpush {}\n", v).as_str()),
+                                    Value::Word(v) => code.push_str(format!("\t\tpush {}\n", v).as_str()),
+                                }
+                            },
+                            ValueType::Variable(var_in) => {
+                                let var = get_variable(&variables, var_in);
+                                match var.size {
+                                    Size::Byte => code.push_str(format!("\t\tmov  al, BYTE [{}_]\n", var.name.0).as_str()),
+                                    Size::Word => code.push_str(format!("\t\tmov  ax, WORD [{}_]\n", var.name.0).as_str()),
+                                }
+                                code.push_str("\t\tpush rax\n");
+                            },
+                            _ => unreachable!()
+                        }
+                    }
+                    let (reg, size) = match get_size_variable(&variables, assign.var_name.clone()) {
+                        Size::Byte => ("al", "BYTE"),
+                        Size::Word => ("ax", "WORD"),
+                    };
+
+                    code.push_str(format!("\t\tcall {}_\n", func_call.name.0).as_str());
+                    code.push_str(format!("\t\tmov\t{} [{}_], {}\n", size, assign.var_name.0, reg).as_str());
+                },
             },
             _ => unreachable!(),
         }
@@ -185,6 +212,15 @@ fn get_variable(vars: &Vec<Variable>, var_name: Indent) -> Variable {
     for var in vars {
         if var.name == var_name {
             return (*var).clone();
+        }
+    }
+    unreachable!()
+}
+
+fn get_size_variable(vars: &Vec<Variable>, var_name: Indent) -> Size {
+    for var in vars {
+        if var.name == var_name {
+            return (*var).size;
         }
     }
     unreachable!()

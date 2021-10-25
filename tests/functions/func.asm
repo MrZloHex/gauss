@@ -2,6 +2,7 @@ SECTION .bss
 	eight2_:	resb 1
 	var_:	resw 1
 	eight1_:	resb 1
+	five1_:	resb 1
 
 SECTION .data
 	myvar_:	dw 420
@@ -29,9 +30,14 @@ SECTION .text
 	global _start
 	_start:
 		mov	BYTE [eight2_], 69
-		mov	ax, WORD [myvar_]
-		mov	WORD [var_], ax
-		mov	BYTE [eight1_], 0
+		mov  ax, WORD [myvar_]
+		mov  WORD [var_], ax
+		call eight_
+		mov	BYTE [eight1_], al
+		mov  al, BYTE [eight1_]
+		push rax
+		call five_
+		mov	BYTE [five1_], al
 
 		mov	rax, 0x3c
 		mov	rdi, 0
