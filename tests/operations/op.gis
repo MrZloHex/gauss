@@ -1,0 +1,8 @@
+; `+` operator
+
+BYTE 1number: #34
+BYTE 2number
+2number = #35
+
+BYTE ressum
+ressum = 1number + 2number

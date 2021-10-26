@@ -69,9 +69,38 @@ pub_struct!(Variable {
     init: Init,
 });
 
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub enum BinaryOpType {
+    Addition,
+    Substraction,
+    Multiplication,
+    Division
+}
+
+pub_struct!( BinaryOperation {
+    op_type: BinaryOpType,
+});
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum OperationType {
+    Binary(BinaryOperation),
+    Unary,
+}
+
+pub_struct!( Operation {
+    op_type: OperationType,
+    size: Size,
+});
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum AssignValue {
+    Value(ValueType),
+    Computation(Operation)
+}
+
 pub_struct!(Assignment {
     var_name: Indent,
-    val: ValueType,
+    val: AssignValue,
 });
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

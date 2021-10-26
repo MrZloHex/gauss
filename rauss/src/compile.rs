@@ -18,7 +18,7 @@ pub fn into_nasm(
             Size::Byte => ("resb", 1_u8),
             Size::Word => ("resw", 1_u8),
         };
-        code.push_str(format!("\t{}_:\t{} {}\n", u_var.name.0, size, quantity).as_str());
+        code.push_str(format!("\t_{}:\t{} {}\n", u_var.name.0, size, quantity).as_str());
     }
     code.push('\n');
 
@@ -37,7 +37,7 @@ pub fn into_nasm(
         } else {
             unreachable!()
         };
-        code.push_str(format!("\t{}_:\t{} {}\n", i_var.name.0, size, value).as_str());
+        code.push_str(format!("\t_{}:\t{} {}\n", i_var.name.0, size, value).as_str());
     }
     code.push('\n');
 
@@ -51,7 +51,7 @@ pub fn into_nasm(
         let mut vars_p: u64 = 0;
         let mut args_p: u64 = 0;
 
-        code.push_str(format!("\t{}_:\n", function.name.0).as_str());
+        code.push_str(format!("\t_{}_:\n", function.name.0).as_str());
         code.push_str("\t\tpush rbp\n");
         code.push_str("\t\tmov  rbp,\trsp\n");
 
@@ -154,7 +154,7 @@ pub fn into_nasm(
                     };
                     code.push_str(format!("\t\t; Assigning value `{}` to variable `{}`\n", value.clone(), assign.var_name.0.clone()).as_str());
                     code.push_str(
-                        format!("\t\tmov\t{} [{}_], {}\n", size, assign.var_name.0, value).as_str(),
+                        format!("\t\tmov\t{} [_{}], {}\n", size, assign.var_name.0, value).as_str(),
                     )
                 }
                 ValueType::Variable(var_name) => {
@@ -165,10 +165,10 @@ pub fn into_nasm(
                     };
                     code.push_str(format!("\t\t; Assigning variable `{}` to variable `{}`\n", var_name.0.clone(), assign.var_name.0.clone()).as_str());
                     code.push_str(
-                        format!("\t\tmov  {}, {} [{}_]\n", reg, size, var_name.0).as_str(),
+                        format!("\t\tmov  {}, {} [_{}]\n", reg, size, var_name.0).as_str(),
                     );
                     code.push_str(
-                        format!("\t\tmov  {} [{}_], {}\n", size, assign.var_name.0, reg).as_str(),
+                        format!("\t\tmov  {} [_{}], {}\n", size, assign.var_name.0, reg).as_str(),
                     )
                 }
                 ValueType::FunctionValue(func_call) => {
@@ -178,9 +178,9 @@ pub fn into_nasm(
                         Size::Byte => ("al", "BYTE"),
                         Size::Word => ("ax", "WORD"),
                     };
-                    code.push_str(format!("\t\tcall {}_\n", func_call.name.0).as_str());
+                    code.push_str(format!("\t\tcall _{}_\n", func_call.name.0).as_str());
                     code.push_str(post_fn_args(func_call.argc).as_str());
-                    code.push_str(format!("\t\tmov\t{} [{}_], {}\n", size, assign.var_name.0, reg).as_str());
+                    code.push_str(format!("\t\tmov\t{} [_{}], {}\n", size, assign.var_name.0, reg).as_str());
                 },
             },
             _ => unreachable!(),
@@ -214,14 +214,14 @@ fn pre_fn_args(func_call: FunctionCall, vars_p: &Vec<Variable>) -> String {
             ValueType::Variable(var_in) => {
                 let var = get_variable(vars_p, var_in);
                 match var.size {
-                    Size::Byte => code.push_str(format!("\t\tmov  al, BYTE [{}_]\n", var.name.0).as_str()),
-                    Size::Word => code.push_str(format!("\t\tmov  ax, WORD [{}_]\n", var.name.0).as_str()),
+                    Size::Byte => code.push_str(format!("\t\tmov  al, BYTE [_{}]\n", var.name.0).as_str()),
+                    Size::Word => code.push_str(format!("\t\tmov  ax, WORD [_{}]\n", var.name.0).as_str()),
                 }
                 code.push_str("\t\tpush rax\n");
             },
             ValueType::FunctionValue(f_c) => {
                 code.push_str(pre_fn_args(f_c.clone(), &vars_p.clone()).as_str());
-                code.push_str(format!("\t\tcall {}_\n", f_c.name.0).as_str());
+                code.push_str(format!("\t\tcall _{}_\n", f_c.name.0).as_str());
                 code.push_str(post_fn_args(f_c.argc).as_str());
                 code.push_str("\t\tpush rax\n");
             }

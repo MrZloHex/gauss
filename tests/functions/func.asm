@@ -1,14 +1,14 @@
 SECTION .bss
-	eight2_:	resb 1
-	var_:	resw 1
-	eight1_:	resb 1
-	five1_:	resw 1
+	_eight2:	resb 1
+	_var:	resw 1
+	_eight1:	resb 1
+	_five1:	resw 1
 
 SECTION .data
-	myvar_:	dw 420
+	_myvar:	dw 420
 
 SECTION .text
-	eight_:
+	_eight_:
 		push rbp
 		mov  rbp,	rsp
 		sub  rsp,	3
@@ -18,7 +18,7 @@ SECTION .text
 		mov  al,	BYTE [rbp-1]
 		leave
 		ret
-	retsame_:
+	_retsame_:
 		push rbp
 		mov  rbp,	rsp
 		sub  rsp,	2
@@ -28,7 +28,7 @@ SECTION .text
 		mov  ax,	WORD [rbp-2]
 		leave
 		ret
-	five_:
+	_five_:
 		push rbp
 		mov  rbp,	rsp
 		sub  rsp,	4
@@ -44,19 +44,19 @@ SECTION .text
 	global _start
 	_start:
 		; Assigning value `69` to variable `eight2`
-		mov	BYTE [eight2_], 69
+		mov	BYTE [_eight2], 69
 		; Assigning variable `myvar` to variable `var`
-		mov  ax, WORD [myvar_]
-		mov  WORD [var_], ax
+		mov  ax, WORD [_myvar]
+		mov  WORD [_var], ax
 		; Assigning result of function `eight` to variable `eight1`
-		call eight_
+		call _eight_
 		add  rsp, 8 * 0
-		mov	BYTE [eight1_], al
+		mov	BYTE [_eight1], al
 		; Assigning result of function `retsame` to variable `five1`
 		push 42
-		call retsame_
+		call _retsame_
 		add  rsp, 8 * 1
-		mov	WORD [five1_], ax
+		mov	WORD [_five1], ax
 
 		; Exit syscall
 		mov	rax, 0x3c
