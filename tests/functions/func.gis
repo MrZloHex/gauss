@@ -14,5 +14,5 @@ var = myvar
 BYTE eight1
 eight1 = @eight[ ]
 
-BYTE five1
-five1 = @five[ @five [ @eight[] | @retsame[ #420 ] ] | var ]
+WORD five1
+five1 = @retsame[ #42 ]

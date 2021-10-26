@@ -2,7 +2,7 @@ SECTION .bss
 	eight2_:	resb 1
 	var_:	resw 1
 	eight1_:	resb 1
-	five1_:	resb 1
+	five1_:	resw 1
 
 SECTION .data
 	myvar_:	dw 420
@@ -52,22 +52,11 @@ SECTION .text
 		call eight_
 		add  rsp, 8 * 0
 		mov	BYTE [eight1_], al
-		; Assigning result of function `five` to variable `five1`
-		call eight_
-		add  rsp, 8 * 0
-		push rax
-		push 420
+		; Assigning result of function `retsame` to variable `five1`
+		push 42
 		call retsame_
 		add  rsp, 8 * 1
-		push rax
-		call five_
-		add  rsp, 8 * 2
-		push rax
-		mov  ax, WORD [var_]
-		push rax
-		call five_
-		add  rsp, 8 * 2
-		mov	BYTE [five1_], al
+		mov	WORD [five1_], ax
 
 		; Exit syscall
 		mov	rax, 0x3c

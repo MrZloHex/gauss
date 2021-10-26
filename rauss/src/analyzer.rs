@@ -73,7 +73,9 @@ pub fn analyze_instr(
                 let size_var = get_size_var(&variables, assignment.var_name.clone());
                 match val {
                     Value::Byte(_) => {
-                        if size_var != Size::Byte {
+                        if size_var == Size::Word {
+                            // Ok
+                        } else if size_var != Size::Byte {
                             error(2, assignment.var_name.clone())
                         }
                     }
@@ -119,7 +121,7 @@ pub fn analyze_instr(
                         match arg {
                             ValueType::Immediate(val) => {
                                 match val {
-                                    Value::Byte(_) => if size != Size::Byte { error(10, f_arg.name.clone()) },
+                                    Value::Byte(_) => (), //OK  //if size != Size::Byte { error(10, f_arg.name.clone()) },
                                     Value::Word(_) => if size != Size::Word { error(10, f_arg.name.clone()) }
                                 }
                             },

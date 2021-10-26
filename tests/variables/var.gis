@@ -14,3 +14,5 @@ var1 = var3
 ; assigment immediate value to unintilized variable
 var2 = #420
 
+WORD var5
+var5 = #60
