@@ -6,8 +6,9 @@ use crate::types::*;
 pub fn lex_instr(source_code: Vec<u8>) -> Vec<Instruction> {
     let mut used_chars: [char; 78] = [0 as char; 78];
     let spec_chars = [
-        ':', '#', '!', '[', ']', '\n', '*', '&', '+', '-', '<', '>', '@', '|', '.', '=',
+        ':', '#', '!', '[', ']', '\n', '<', '>', '@', '|', '.', '=',
     ];
+    let binary_operators = ['+', '-', '*', '/'];
     for (i, c) in ('a'..='z').enumerate() {
         used_chars[i] = c;
     }
@@ -17,8 +18,11 @@ pub fn lex_instr(source_code: Vec<u8>) -> Vec<Instruction> {
     for (i, c) in ('0'..='9').enumerate() {
         used_chars[i + 52] = c;
     }
-    for (i, c) in spec_chars.iter().enumerate() {
+    for (i, c) in binary_operators.iter().enumerate() {
         used_chars[i + 62] = *c;
+    }
+    for (i, c) in spec_chars.iter().enumerate() {
+        used_chars[i + 66] = *c;
     }
 
     let mut instructions: Vec<Instruction> = Vec::new();
@@ -42,11 +46,12 @@ pub fn lex_instr(source_code: Vec<u8>) -> Vec<Instruction> {
     let mut ValVarStr = String::new();
 
     let mut isAssignment = false;
+    let mut isExpression = false;
     let mut parseVarIndent = false;
     let mut parseValueType = false;
     let mut VarIndent = String::new();
     let mut ValAssStr = String::new();
-    let mut AssVal = ValueType::Immediate(Value::Byte(0));
+    let mut AssVal = AssignValue::Value(ValueType::Immediate(Value::Byte(0)));
     let mut pushAssignment = false;
 
     let mut column: usize = 0;
@@ -240,16 +245,20 @@ pub fn lex_instr(source_code: Vec<u8>) -> Vec<Instruction> {
             }
             if parseValueType {
                 if symbol == '\n' {
-                    pushAssignment = true;
-                    parseValueType = false;
-                    AssVal = match get_value_type(ValAssStr) {
-                        Ok(val) => val,
-                        Err(err_code) => {
-                            error(err_code, row, column, symbol);
-                            ValueType::Immediate(Value::Byte(0))
-                        }
-                    };
-                    ValAssStr = String::new();
+                    if !isExpression {
+                        pushAssignment = true;
+                        parseValueType = false;
+                        AssVal = match get_value_type(ValAssStr) {
+                            Ok(val) => AssignValue::Value(val),
+                            Err(err_code) => {
+                                error(err_code, row, column, symbol);
+                                AssignValue::Value(ValueType::Immediate(Value::Byte(0)))
+                            }
+                        };
+                        ValAssStr = String::new();
+                    }
+                } else if binary_operators.contains(&symbol) {
+                    isExpression = true;
                 } else {
                     ValAssStr.push(symbol);
                 }

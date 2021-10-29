@@ -147,41 +147,44 @@ pub fn into_nasm(
     for instruction in instructions {
         match instruction {
             Instruction::Assignment(assign) => match assign.val {
-                ValueType::Immediate(val) => {
-                    let (value, size) = match val {
-                        Value::Byte(v) => (v as u16, "BYTE"),
-                        Value::Word(v) => (v, "WORD"),
-                    };
-                    code.push_str(format!("\t\t; Assigning value `{}` to variable `{}`\n", value.clone(), assign.var_name.0.clone()).as_str());
-                    code.push_str(
-                        format!("\t\tmov\t{} [_{}], {}\n", size, assign.var_name.0, value).as_str(),
-                    )
-                }
-                ValueType::Variable(var_name) => {
-                    let var = get_variable(&variables, var_name.clone());
-                    let (reg, size) = match var.size {
-                        Size::Byte => ("al", "BYTE"),
-                        Size::Word => ("ax", "WORD"),
-                    };
-                    code.push_str(format!("\t\t; Assigning variable `{}` to variable `{}`\n", var_name.0.clone(), assign.var_name.0.clone()).as_str());
-                    code.push_str(
-                        format!("\t\tmov  {}, {} [_{}]\n", reg, size, var_name.0).as_str(),
-                    );
-                    code.push_str(
-                        format!("\t\tmov  {} [_{}], {}\n", size, assign.var_name.0, reg).as_str(),
-                    )
-                }
-                ValueType::FunctionValue(func_call) => {
-                    code.push_str(format!("\t\t; Assigning result of function `{}` to variable `{}`\n", func_call.name.0.clone(), assign.var_name.0.clone()).as_str());
-                    code.push_str(pre_fn_args(func_call.clone(), &variables).as_str());
-                    let (reg, size) = match get_size_variable(&variables, assign.var_name.clone()) {
-                        Size::Byte => ("al", "BYTE"),
-                        Size::Word => ("ax", "WORD"),
-                    };
-                    code.push_str(format!("\t\tcall _{}_\n", func_call.name.0).as_str());
-                    code.push_str(post_fn_args(func_call.argc).as_str());
-                    code.push_str(format!("\t\tmov\t{} [_{}], {}\n", size, assign.var_name.0, reg).as_str());
+                AssignValue::Value(val) => match val {
+                    ValueType::Immediate(val_imm) => {
+                        let (value, size) = match val_imm {
+                            Value::Byte(v) => (v as u16, "BYTE"),
+                            Value::Word(v) => (v, "WORD"),
+                        };
+                        code.push_str(format!("\t\t; Assigning value `{}` to variable `{}`\n", value.clone(), assign.var_name.0.clone()).as_str());
+                        code.push_str(
+                            format!("\t\tmov\t{} [_{}], {}\n", size, assign.var_name.0, value).as_str(),
+                        )
+                    }
+                    ValueType::Variable(var_name) => {
+                        let var = get_variable(&variables, var_name.clone());
+                        let (reg, size) = match var.size {
+                            Size::Byte => ("al", "BYTE"),
+                            Size::Word => ("ax", "WORD"),
+                        };
+                        code.push_str(format!("\t\t; Assigning variable `{}` to variable `{}`\n", var_name.0.clone(), assign.var_name.0.clone()).as_str());
+                        code.push_str(
+                            format!("\t\tmov  {}, {} [_{}]\n", reg, size, var_name.0).as_str(),
+                        );
+                        code.push_str(
+                            format!("\t\tmov  {} [_{}], {}\n", size, assign.var_name.0, reg).as_str(),
+                        )
+                    }
+                    ValueType::FunctionValue(func_call) => {
+                        code.push_str(format!("\t\t; Assigning result of function `{}` to variable `{}`\n", func_call.name.0.clone(), assign.var_name.0.clone()).as_str());
+                        code.push_str(pre_fn_args(func_call.clone(), &variables).as_str());
+                        let (reg, size) = match get_size_variable(&variables, assign.var_name.clone()) {
+                            Size::Byte => ("al", "BYTE"),
+                            Size::Word => ("ax", "WORD"),
+                        };
+                        code.push_str(format!("\t\tcall _{}_\n", func_call.name.0).as_str());
+                        code.push_str(post_fn_args(func_call.argc).as_str());
+                        code.push_str(format!("\t\tmov\t{} [_{}], {}\n", size, assign.var_name.0, reg).as_str());
+                    },
                 },
+                AssignValue::Expression(op) => (),
             },
             _ => unreachable!(),
         }

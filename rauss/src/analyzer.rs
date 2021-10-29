@@ -51,16 +51,19 @@ pub fn analyze_instr(
 
     for assignment in &assignments {
         match &assignment.val {
-            ValueType::Variable(var_name) => {
-                if !is_variable(&variables, var_name.clone()) {
-                    error(4, var_name.clone())
-                } else {
-                    if is_variable(&uninit_vars, var_name.clone()) {
-                        error(5, var_name.clone())
+            AssignValue::Value(val) => match val {
+                ValueType::Variable(var_name) => {
+                    if !is_variable(&variables, var_name.clone()) {
+                        error(4, var_name.clone())
+                    } else {
+                        if is_variable(&uninit_vars, var_name.clone()) {
+                            error(5, var_name.clone())
+                        }
                     }
                 }
-            }
-            _ => (),
+                _ => (),
+            },
+            AssignValue::Expression(op) => ()
         }
     }
 
@@ -69,80 +72,83 @@ pub fn analyze_instr(
     // check for correct size of operands of assignment
     for assignment in &assignments {
         match &assignment.val {
-            ValueType::Immediate(val) => {
-                let size_var = get_size_var(&variables, assignment.var_name.clone());
-                match val {
-                    Value::Byte(_) => {
-                        if size_var == Size::Word {
-                            // Ok
-                        } else if size_var != Size::Byte {
-                            error(2, assignment.var_name.clone())
-                        }
-                    }
-                    Value::Word(_) => {
-                        if size_var != Size::Word {
-                            error(2, assignment.var_name.clone())
-                        }
-                    }
-                }
-            }
-            ValueType::Variable(var) => {
-                let size_var = get_size_var(&variables, assignment.var_name.clone());
-                let size_val = get_size_var(&variables, (*var).clone());
-                if size_var != size_val {
-                    error(2, assignment.var_name.clone())
-                }
-            }
-            ValueType::FunctionValue(func_call) => {
-                let func_call_name = func_call.name.clone();
-                let mut is_such_func = false;
-                let mut argc: usize  = 0;
-                let mut args: Vec<Argument> = Vec::new();
-                let mut ret_size = Size::Byte;
-                for function in functions_p {
-                    if function.name == func_call_name {
-                        is_such_func = true;
-                        argc = function.argc.clone();
-                        args = function.args.clone();
-                        ret_size = function.ret_size;
-                    }
-                }
-
-                if is_such_func {
+            AssignValue::Value(value) => match value {
+                ValueType::Immediate(val) => {
                     let size_var = get_size_var(&variables, assignment.var_name.clone());
-                    if size_var != ret_size {
-                        error(2, assignment.var_name.clone());
-                    }
-                    if argc != func_call.argc {
-                        error(9, func_call_name)
-                    }
-                    for (f_arg, arg) in args.iter().zip(func_call.args.iter()) {
-                        let size = f_arg.size;
-                        match arg {
-                            ValueType::Immediate(val) => {
-                                match val {
-                                    Value::Byte(_) => (), //OK  //if size != Size::Byte { error(10, f_arg.name.clone()) },
-                                    Value::Word(_) => if size != Size::Word { error(10, f_arg.name.clone()) }
-                                }
-                            },
-                            ValueType::Variable(var) => {
-                                let var_size = get_size_var(&variables, (*var).clone());
-                                if var_size != size {
-                                    error(10, f_arg.name.clone());
-                                }
-                            },
-                            ValueType::FunctionValue(fn_c) => {
-                                let f_size = get_size_function(functions_p, fn_c.name.clone());
-                                if f_size != size {
-                                    error(10, f_arg.name.clone());
-                                }
+                    match val {
+                        Value::Byte(_) => {
+                            if size_var == Size::Word {
+                                // Ok
+                            } else if size_var != Size::Byte {
+                                error(2, assignment.var_name.clone())
                             }
                         }
-                    }   
-                } else {
-                    error(8, func_call_name);
+                        Value::Word(_) => {
+                            if size_var != Size::Word {
+                                error(2, assignment.var_name.clone())
+                            }
+                        }
+                    }
                 }
-            }
+                ValueType::Variable(var) => {
+                    let size_var = get_size_var(&variables, assignment.var_name.clone());
+                    let size_val = get_size_var(&variables, (*var).clone());
+                    if size_var != size_val {
+                        error(2, assignment.var_name.clone())
+                    }
+                }
+                ValueType::FunctionValue(func_call) => {
+                    let func_call_name = func_call.name.clone();
+                    let mut is_such_func = false;
+                    let mut argc: usize  = 0;
+                    let mut args: Vec<Argument> = Vec::new();
+                    let mut ret_size = Size::Byte;
+                    for function in functions_p {
+                        if function.name == func_call_name {
+                            is_such_func = true;
+                            argc = function.argc.clone();
+                            args = function.args.clone();
+                            ret_size = function.ret_size;
+                        }
+                    }
+
+                    if is_such_func {
+                        let size_var = get_size_var(&variables, assignment.var_name.clone());
+                        if size_var != ret_size {
+                            error(2, assignment.var_name.clone());
+                        }
+                        if argc != func_call.argc {
+                            error(9, func_call_name)
+                        }
+                        for (f_arg, arg) in args.iter().zip(func_call.args.iter()) {
+                            let size = f_arg.size;
+                            match arg {
+                                ValueType::Immediate(val) => {
+                                    match val {
+                                        Value::Byte(_) => (), //OK  //if size != Size::Byte { error(10, f_arg.name.clone()) },
+                                        Value::Word(_) => if size != Size::Word { error(10, f_arg.name.clone()) }
+                                    }
+                                },
+                                ValueType::Variable(var) => {
+                                    let var_size = get_size_var(&variables, (*var).clone());
+                                    if var_size != size {
+                                        error(10, f_arg.name.clone());
+                                    }
+                                },
+                                ValueType::FunctionValue(fn_c) => {
+                                    let f_size = get_size_function(functions_p, fn_c.name.clone());
+                                    if f_size != size {
+                                        error(10, f_arg.name.clone());
+                                    }
+                                }
+                            }
+                        }   
+                    } else {
+                        error(8, func_call_name);
+                    }
+                }
+            },
+            AssignValue::Expression(op) => ()
         }
     }
 

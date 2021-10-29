@@ -95,7 +95,7 @@ pub_struct!( Operation {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum AssignValue {
     Value(ValueType),
-    Computation(Operation)
+    Expression(Operation)
 }
 
 pub_struct!(Assignment {

@@ -1,5 +1,6 @@
 SECTION .bss
 	_2number:	resb 1
+	_ressum:	resb 1
 
 SECTION .data
 	_1number:	db 34
