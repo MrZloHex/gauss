@@ -3,7 +3,6 @@
 import sys
 import subprocess
 import os
-import fnmatch
 
 def parse_cli() -> tuple:
     if len(sys.argv) > 1:
@@ -41,7 +40,9 @@ def parse_instr(code: list, flnm: str):
         tokens = line.split()
         if not tokens:
             continue
-        if tokens[0] == "build":
+        if tokens[0] == "test":
+            subprocess.run(["./test.py"])
+        elif tokens[0] == "build":
             # TODO: Implement manual defining path to .gis file
             GIS = flnm.replace(".gbi", ".gis")
             if search_file(GIS):

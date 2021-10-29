@@ -52,6 +52,7 @@ pub fn lex_instr(source_code: Vec<u8>) -> Vec<Instruction> {
     let mut VarIndent = String::new();
     let mut ValAssStr = String::new();
     let mut AssVal = AssignValue::Value(ValueType::Immediate(Value::Byte(0)));
+    let mut assign_bin_op_type = BinaryOpType::Addition;
     let mut pushAssignment = false;
 
     let mut column: usize = 0;
@@ -256,11 +257,29 @@ pub fn lex_instr(source_code: Vec<u8>) -> Vec<Instruction> {
                             }
                         };
                         ValAssStr = String::new();
+                    } else {
+                        match assign_bin_op_type {
+                            BinaryOpType::Addition       => (),
+                            BinaryOpType::Substraction   => (),
+                            BinaryOpType::Multiplication => (),
+                            BinaryOpType::Division       => (),
+                        }
                     }
                 } else if binary_operators.contains(&symbol) {
                     isExpression = true;
+                    assign_bin_op_type = match symbol {
+                        '+' => BinaryOpType::Addition,
+                        '-' => BinaryOpType::Substraction,
+                        '*' => BinaryOpType::Multiplication,
+                        '/' => BinaryOpType::Division,
+                        _ => unreachable!()
+                    };
                 } else {
-                    ValAssStr.push(symbol);
+                    if isExpression {
+                        
+                    } else {
+                        ValAssStr.push(symbol);
+                    }
                 }
             }
             if pushAssignment {
@@ -291,7 +310,7 @@ fn get_value_type(code: String) -> Result<ValueType, u8> {
         '#' => typeValueType = 1,
         '@' => typeValueType = 2,
         'a'..='z'|'1'..='9' => typeValueType = 3,
-        _ => unreachable!()
+        _ => unreachable!(code)
     }
     
     // Immediate Value
