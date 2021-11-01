@@ -79,18 +79,15 @@ pub enum BinaryOpType {
 
 pub_struct!( BinaryOperation {
     op_type: BinaryOpType,
+    operand_1: ValueType,
+    operand_2: ValueType,
 });
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum OperationType {
+pub enum Operation {
     Binary(BinaryOperation),
     Unary,
 }
-
-pub_struct!( Operation {
-    op_type: OperationType,
-    size: Size,
-});
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum AssignValue {

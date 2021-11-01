@@ -53,6 +53,7 @@ pub fn lex_instr(source_code: Vec<u8>) -> Vec<Instruction> {
     let mut ValAssStr = String::new();
     let mut AssVal = AssignValue::Value(ValueType::Immediate(Value::Byte(0)));
     let mut assign_bin_op_type = BinaryOpType::Addition;
+    let mut operand_assign_2 = String::new();
     let mut pushAssignment = false;
 
     let mut column: usize = 0;
@@ -249,7 +250,7 @@ pub fn lex_instr(source_code: Vec<u8>) -> Vec<Instruction> {
                     if !isExpression {
                         pushAssignment = true;
                         parseValueType = false;
-                        AssVal = match get_value_type(ValAssStr) {
+                        AssVal = match get_value_type(ValAssStr.clone()) {
                             Ok(val) => AssignValue::Value(val),
                             Err(err_code) => {
                                 error(err_code, row, column, symbol);
@@ -258,12 +259,32 @@ pub fn lex_instr(source_code: Vec<u8>) -> Vec<Instruction> {
                         };
                         ValAssStr = String::new();
                     } else {
-                        match assign_bin_op_type {
-                            BinaryOpType::Addition       => (),
-                            BinaryOpType::Substraction   => (),
-                            BinaryOpType::Multiplication => (),
-                            BinaryOpType::Division       => (),
-                        }
+                        pushAssignment = true;
+                        parseValueType = false;
+                        isExpression = false;
+                        let operand_1 = match get_value_type(ValAssStr.clone()) {
+                            Ok(val) => val,
+                            Err(err_code) => {
+                                error(err_code, row, column, symbol);
+                                ValueType::Immediate(Value::Byte(0))
+                            }
+                        };
+                        let operand_2 = match get_value_type(operand_assign_2.clone()) {
+                            Ok(val) => val,
+                            Err(err_code) => {
+                                error(err_code, row, column, symbol);
+                                ValueType::Immediate(Value::Byte(0))
+                            }
+                        };
+                        let operation  = BinaryOperation {
+                            op_type: assign_bin_op_type,
+                            operand_1,
+                            operand_2
+                        };
+                        operand_assign_2 = String::new();
+                        ValAssStr = String::new();
+                        AssVal = AssignValue::Expression(Operation::Binary(operation));
+                        println!("")
                     }
                 } else if binary_operators.contains(&symbol) {
                     isExpression = true;
@@ -276,7 +297,8 @@ pub fn lex_instr(source_code: Vec<u8>) -> Vec<Instruction> {
                     };
                 } else {
                     if isExpression {
-                        
+                        operand_assign_2.push(symbol);
+                        print!("{}", symbol)
                     } else {
                         ValAssStr.push(symbol);
                     }
