@@ -60,7 +60,12 @@ pub fn analyze_instr(
                             error(5, var_name.clone())
                         }
                     }
-                }
+                },
+                ValueType::FunctionValue(func_call) => {
+                    if !is_correct_function_call(&func_call, functions_p, &variables) {
+                        error(11, func_call);
+                    }
+                },
                 _ => (),
             },
             AssignValue::Expression(op) => {
@@ -180,8 +185,8 @@ pub fn analyze_instr(
             },
             AssignValue::Expression(op) => {
                 match &op {
-                    Operation::Binary(bin_op) => {
-                        
+                    Operation::Binary(_bin_op) => {
+                         
                     },
                     Operation::Unary => unreachable!()
                 }
@@ -299,6 +304,7 @@ pub fn analyze_func(functions: &Vec<Function>) -> bool {
  *  - 8:  Calling undeclared function
  *  - 9:  Incorrect quantity of provided arguments
  *  - 10: Incorrect argument size
+ *  - 11: Incorrect function call
  *
  */
 
@@ -331,6 +337,7 @@ where
         8 => eprintln!("Calling undeclared function `{:?}`", problem_struct),
         9 => eprintln!("Incorrect quantity of provided arguments at `{:?}`", problem_struct),
         10 => eprintln!("Incorrect argument size `{:?}`", problem_struct),
+        11 => eprintln!("Incorrect function call `{:?}`", problem_struct),
         _ => unreachable!(),
     }
     std::process::exit(1);
@@ -427,3 +434,56 @@ fn is_variable(vars: &Vec<Variable>, var_name: Indent) -> bool {
     res
 }
 
+fn is_correct_function_call(function_call: &FunctionCall, functions: &Vec<Function>, variables: &Vec<Variable>) -> bool {
+    let mut is_function: bool = false;
+    let mut function = Function {
+        name: Indent("QWE".to_string()),
+        args: Vec::new(),
+        argc: 0,
+        ret_size: Size::Byte,
+        vars: Vec::new(),
+        ret_var: Indent("QWE".to_string())
+    };
+    for func in functions {
+        if func.name == function_call.name {
+            is_function = true;
+            function = (*func).clone();
+            break;
+        }
+    }
+    if is_function {
+        if function.argc != function_call.argc {
+            error(9, function_call)
+        } else {
+            for (f_arg, arg) in function.args.iter().zip(function_call.args.iter()) {
+                let size = f_arg.size;
+                match arg {
+                    ValueType::Immediate(val) => {
+                        match val {
+                            Value::Byte(_) => (), //OK  //if size != Size::Byte { error(10, f_arg.name.clone()) },
+                            Value::Word(_) => if size != Size::Word { error(10, f_arg.name.clone()) }
+                        }
+                    },
+                    ValueType::Variable(var) => {
+                        let var_size = get_size_var(&variables, (*var).clone());
+                        if var_size != size {
+                            error(10, f_arg.name.clone());
+                        }
+                    },
+                    ValueType::FunctionValue(fn_c) => {
+                        if !is_correct_function_call(&fn_c, functions, variables) {
+                            error(11, function_call)
+                        }
+                        let f_size = get_size_function(functions, fn_c.name.clone());
+                        if f_size != size {
+                            error(10, f_arg.name.clone());
+                        }
+                    }
+                }
+            };
+            return true;
+        }
+    } else {
+        error(8, function_call.name.0.clone())
+    }
+}
