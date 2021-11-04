@@ -1,0 +1,4 @@
+WORD func420: [ BYTE smth ]
+ | WORD res: #420
+ | RET [ res ]
+ \_

@@ -49,9 +49,9 @@ pub fn lex_instr(source_code: Vec<u8>) -> Vec<Instruction> {
     let mut isExpression = false;
     let mut parseVarIndent = false;
     let mut parseValueType = false;
-    let mut VarIndent = String::new();
-    let mut ValAssStr = String::new();
-    let mut AssVal = AssignValue::Value(ValueType::Immediate(Value::Byte(0)));
+    let mut assignment_var_indent = String::new();
+    let mut operand_assign_1 = String::new();
+    let mut assignment_value = AssignValue::Value(ValueType::Immediate(Value::Byte(0)));
     let mut assign_bin_op_type = BinaryOpType::Addition;
     let mut operand_assign_2 = String::new();
     let mut pushAssignment = false;
@@ -237,7 +237,7 @@ pub fn lex_instr(source_code: Vec<u8>) -> Vec<Instruction> {
             if parseVarIndent {
                 if symbol == '=' {
                     parseVarIndent = false;
-                    VarIndent = indent;
+                    assignment_var_indent = indent;
                     indent = String::new();
                     parseValueType = true;
                     continue;
@@ -250,19 +250,19 @@ pub fn lex_instr(source_code: Vec<u8>) -> Vec<Instruction> {
                     if !isExpression {
                         pushAssignment = true;
                         parseValueType = false;
-                        AssVal = match get_value_type(ValAssStr.clone()) {
+                        assignment_value = match get_value_type(operand_assign_1.clone()) {
                             Ok(val) => AssignValue::Value(val),
                             Err(err_code) => {
                                 error(err_code, row, column, symbol);
                                 AssignValue::Value(ValueType::Immediate(Value::Byte(0)))
                             }
                         };
-                        ValAssStr = String::new();
+                        operand_assign_1 = String::new();
                     } else {
                         pushAssignment = true;
                         parseValueType = false;
                         isExpression = false;
-                        let operand_1 = match get_value_type(ValAssStr.clone()) {
+                        let operand_1 = match get_value_type(operand_assign_1.clone()) {
                             Ok(val) => val,
                             Err(err_code) => {
                                 error(err_code, row, column, symbol);
@@ -282,9 +282,8 @@ pub fn lex_instr(source_code: Vec<u8>) -> Vec<Instruction> {
                             operand_2
                         };
                         operand_assign_2 = String::new();
-                        ValAssStr = String::new();
-                        AssVal = AssignValue::Expression(Operation::Binary(operation));
-                        println!("")
+                        operand_assign_1 = String::new();
+                        assignment_value = AssignValue::Expression(Operation::Binary(operation));
                     }
                 } else if binary_operators.contains(&symbol) {
                     isExpression = true;
@@ -298,9 +297,8 @@ pub fn lex_instr(source_code: Vec<u8>) -> Vec<Instruction> {
                 } else {
                     if isExpression {
                         operand_assign_2.push(symbol);
-                        print!("{}", symbol)
                     } else {
-                        ValAssStr.push(symbol);
+                        operand_assign_1.push(symbol);
                     }
                 }
             }
@@ -308,10 +306,10 @@ pub fn lex_instr(source_code: Vec<u8>) -> Vec<Instruction> {
                 pushAssignment = false;
                 isAssignment = false;
                 let assign = Assignment {
-                    var_name: Indent(VarIndent),
-                    val: AssVal.clone(),
+                    var_name: Indent(assignment_var_indent),
+                    val: assignment_value.clone(),
                 };
-                VarIndent = String::new();
+                assignment_var_indent = String::new();
                 indent = String::new();
                 instructions.push(Instruction::Assignment(assign));
             }
@@ -750,7 +748,6 @@ pub fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
             arguments = Vec::new();
             variables = Vec::new();
             RetVar = String::new();
-
             functions.push(func);
         }
     }

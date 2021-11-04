@@ -14,3 +14,4 @@ BYTE five: [ BYTE qwe | WORD wer]
  | BYTE res: #5
  | RET [ res ]
  \_
+

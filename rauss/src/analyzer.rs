@@ -63,7 +63,37 @@ pub fn analyze_instr(
                 }
                 _ => (),
             },
-            AssignValue::Expression(op) => ()
+            AssignValue::Expression(op) => {
+                match &op {
+                    Operation::Binary(bin_op) => {
+                        match &bin_op.operand_1 {
+                            ValueType::Variable(var_name ) => {
+                                if !is_variable(&variables, var_name.clone()) {
+                                    error(4, var_name.clone())
+                                } else {
+                                    if is_variable(&uninit_vars, var_name.clone()) {
+                                        error(5, var_name.clone())
+                                    }
+                                }
+                            },
+                            _ => (),
+                        }
+                        match &bin_op.operand_2 {
+                            ValueType::Variable(var_name ) => {
+                                if !is_variable(&variables, var_name.clone()) {
+                                    error(4, var_name.clone())
+                                } else {
+                                    if is_variable(&uninit_vars, var_name.clone()) {
+                                        error(5, var_name.clone())
+                                    }
+                                }
+                            },
+                            _ => (),
+                        }
+                    },
+                    Operation::Unary => (),
+                }
+            }
         }
     }
 
@@ -148,7 +178,14 @@ pub fn analyze_instr(
                     }
                 }
             },
-            AssignValue::Expression(op) => ()
+            AssignValue::Expression(op) => {
+                match &op {
+                    Operation::Binary(bin_op) => {
+                        
+                    },
+                    Operation::Unary => unreachable!()
+                }
+            }
         }
     }
 
@@ -389,3 +426,4 @@ fn is_variable(vars: &Vec<Variable>, var_name: Indent) -> bool {
     }
     res
 }
+

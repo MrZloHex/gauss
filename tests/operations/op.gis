@@ -1,3 +1,4 @@
+!USES </home/zs/gauss/tests/operations/op.gfs>
 ; operators
 
 BYTE 1number: #34
@@ -7,3 +8,4 @@ BYTE 2number
 BYTE ressum
 ressum = 1number + 2number
 1number = #234 * #12
+2number = ressum - @func420[ #123 ]
