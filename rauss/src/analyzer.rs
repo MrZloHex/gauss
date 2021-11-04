@@ -102,7 +102,7 @@ pub fn analyze_instr(
         }
     }
 
-    warn_uninit_vars(uninit_vars);
+    
 
     // check for correct size of operands of assignment
     for assignment in &assignments {
@@ -185,14 +185,49 @@ pub fn analyze_instr(
             },
             AssignValue::Expression(op) => {
                 match &op {
-                    Operation::Binary(_bin_op) => {
-                         
+                    Operation::Binary(bin_op) => {
+                        match &bin_op.operand_1 {
+                            ValueType::Variable(var_name ) => {
+                                if !is_variable(&variables, var_name.clone()) {
+                                    error(4, var_name.clone())
+                                } else {
+                                    if is_variable(&uninit_vars, var_name.clone()) {
+                                        error(5, var_name.clone())
+                                    }
+                                }
+                            },
+                            ValueType::FunctionValue(func_call) => {
+                                if !is_correct_function_call(func_call, functions_p, &variables) {
+                                    error(11, func_call)
+                                }
+                            },
+                            ValueType::Immediate(_) => ()
+                        }
+                        match &bin_op.operand_2 {
+                            ValueType::Variable(var_name ) => {
+                                if !is_variable(&variables, var_name.clone()) {
+                                    error(4, var_name.clone())
+                                } else {
+                                    if is_variable(&uninit_vars, var_name.clone()) {
+                                        error(5, var_name.clone())
+                                    }
+                                }
+                            },
+                            ValueType::FunctionValue(func_call) => {
+                                if !is_correct_function_call(func_call, functions_p, &variables) {
+                                    error(11, func_call)
+                                }
+                            },
+                            ValueType::Immediate(_) => ()
+                        }
                     },
                     Operation::Unary => unreachable!()
                 }
             }
         }
     }
+
+    warn_uninit_vars(uninit_vars);
 
     (true, variables)
 }
