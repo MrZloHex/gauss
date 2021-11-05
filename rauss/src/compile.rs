@@ -45,7 +45,7 @@ pub fn into_nasm(
     code.push_str("SECTION .text\n");
 
     // functions
-    for function in functions {
+    for function in &functions {
         let mut vars_offset: HashMap<Indent, u64> = HashMap::new();
         let mut args_offset: HashMap<Indent, u64> = HashMap::new();
         let mut vars_p: u64 = 0;
@@ -96,7 +96,7 @@ pub fn into_nasm(
         }
 
         // MAIN
-        for var in function.vars {
+        for var in &function.vars {
             // add to vars_offset
             match var.size {
                 Size::Byte => {
@@ -184,7 +184,71 @@ pub fn into_nasm(
                         code.push_str(format!("\t\tmov\t{} [_{}], {}\n", size, assign.var_name.0, reg).as_str());
                     },
                 },
-                AssignValue::Expression(op) => (),
+                AssignValue::Expression(operation) => {
+                    match operation {
+                        Operation::Binary(bin_operation) => {
+                            code.push_str(format!("\t\t; Assigning result expresion to variable `{}`\n", assign.var_name.0.clone()).as_str());
+                            let size = get_size_variable(&variables, assign.var_name);
+                            match bin_operation.operand_1 {
+                                ValueType::Immediate(imm_value) => {
+                                    let value = match imm_value {
+                                        Value::Byte(v) => v as u16,
+                                        Value::Word(v) => v
+                                    };
+                                    match size {
+                                        Size::Byte => code.push_str(format!("\t\tmov\tal, {}\n", value).as_str()),
+                                        Size::Word => code.push_str(format!("\t\tmov\tax, {}\n", value).as_str())
+                                    }
+                                    
+                                },
+                                ValueType::Variable(variable_name) => {
+                                    let size_op = get_size_variable(&variables, variable_name.clone());
+                                    if size_op == Size::Byte && size == Size::Word {
+                                        code.push_str("\t\tmov\trax, 0\n");
+                                    }
+                                    match size_op {
+                                        Size::Byte => code.push_str(format!("\t\tmov\tal, BYTE [_{}]\n", variable_name.0).as_str()),
+                                        Size::Word => code.push_str(format!("\t\tmov\tax, WORD [_{}]\n", variable_name.0).as_str())
+                                    }
+                                },
+                                ValueType::FunctionValue(function_call) => {
+                                    code.push_str(pre_fn_args(function_call.clone(), &variables).as_str());
+                                    code.push_str(format!("\t\tcall _{}_\n", function_call.name.0).as_str());
+                                    code.push_str(post_fn_args(function_call.argc).as_str());
+                                }
+                            }
+                            match bin_operation.operand_2 {
+                                ValueType::Immediate(imm_value) => {
+                                    let value = match imm_value {
+                                        Value::Byte(v) => v as u16,
+                                        Value::Word(v) => v
+                                    };
+                                    match size {
+                                        Size::Byte => code.push_str(format!("\t\tmov\tbl, {}\n", value).as_str()),
+                                        Size::Word => code.push_str(format!("\t\tmov\tbx, {}\n", value).as_str())
+                                    }
+                                    
+                                },
+                                ValueType::Variable(variable_name) => {
+                                    let size_op = get_size_variable(&variables, variable_name.clone());
+                                    if size_op == Size::Byte && size == Size::Word {
+                                        code.push_str("\t\tmov\trbx, 0\n");
+                                    }
+                                    match size_op {
+                                        Size::Byte => code.push_str(format!("\t\tmov\tbl, BYTE [_{}]\n", variable_name.0).as_str()),
+                                        Size::Word => code.push_str(format!("\t\tmov\tbx, WORD [_{}]\n", variable_name.0).as_str())
+                                    }
+                                },
+                                ValueType::FunctionValue(function_call) => {
+                                    code.push_str(pre_fn_args(function_call.clone(), &variables).as_str());
+                                    code.push_str(format!("\t\tcall _{}_\n", function_call.name.0).as_str());
+                                    code.push_str(post_fn_args(function_call.argc).as_str());
+                                }
+                            }
+                        },
+                        Operation::Unary => ()
+                    }
+                },
             },
             _ => unreachable!(),
         }
@@ -278,6 +342,15 @@ fn get_size_variable(vars: &Vec<Variable>, var_name: Indent) -> Size {
     for var in vars {
         if var.name == var_name {
             return (*var).size;
+        }
+    }
+    unreachable!()
+}
+
+fn get_size_function(functions: &Vec<Function>, func_name: Indent) -> Size {
+    for func in functions {
+        if func.name == func_name {
+            return (*func).ret_size;
         }
     }
     unreachable!()

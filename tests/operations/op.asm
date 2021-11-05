@@ -21,6 +21,17 @@ SECTION .text
 	_start:
 		; Assigning value `35` to variable `2number`
 		mov	BYTE [_2number], 35
+		; Assigning result expresion to variable `ressum`
+		mov	al, BYTE [_1number]
+		mov	bl, BYTE [_2number]
+		; Assigning result expresion to variable `1number`
+		mov	al, 234
+		mov	bl, 12
+		; Assigning result expresion to variable `2number`
+		mov	al, BYTE [_ressum]
+		push 123
+		call _func420_
+		add  rsp, 8 * 1
 
 		; Exit syscall
 		mov	rax, 0x3c
