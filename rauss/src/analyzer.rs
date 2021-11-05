@@ -186,7 +186,8 @@ pub fn analyze_instr(
             AssignValue::Expression(op) => {
                 match &op {
                     Operation::Binary(bin_op) => {
-                        match &bin_op.operand_1 {
+                        let res_size = get_size_var(&variables, assignment.var_name.clone());
+                        let op_1_size = match &bin_op.operand_1 {
                             ValueType::Variable(var_name ) => {
                                 if !is_variable(&variables, var_name.clone()) {
                                     error(4, var_name.clone())
@@ -195,15 +196,22 @@ pub fn analyze_instr(
                                         error(5, var_name.clone())
                                     }
                                 }
+                                get_size_var(&variables, (*var_name).clone())
                             },
                             ValueType::FunctionValue(func_call) => {
                                 if !is_correct_function_call(func_call, functions_p, &variables) {
                                     error(11, func_call)
                                 }
+                                get_size_function(functions_p, func_call.name.clone())
                             },
-                            ValueType::Immediate(_) => ()
-                        }
-                        match &bin_op.operand_2 {
+                            ValueType::Immediate(imm_value) => {
+                                match imm_value {
+                                    Value::Byte(_) => Size::Byte,
+                                    Value::Word(_) => Size::Word
+                                }
+                            }
+                        };
+                        let op_2_size = match &bin_op.operand_2 {
                             ValueType::Variable(var_name ) => {
                                 if !is_variable(&variables, var_name.clone()) {
                                     error(4, var_name.clone())
@@ -212,13 +220,30 @@ pub fn analyze_instr(
                                         error(5, var_name.clone())
                                     }
                                 }
+                                get_size_var(&variables, (*var_name).clone())
                             },
                             ValueType::FunctionValue(func_call) => {
                                 if !is_correct_function_call(func_call, functions_p, &variables) {
                                     error(11, func_call)
                                 }
+                                get_size_function(functions_p, func_call.name.clone())
                             },
-                            ValueType::Immediate(_) => ()
+                            ValueType::Immediate(imm_value) => {
+                                match imm_value {
+                                    Value::Byte(_) => Size::Byte,
+                                    Value::Word(_) => Size::Word
+                                }
+                            }
+                        };
+                        match res_size {
+                            Size::Byte => {
+                                if op_1_size == Size::Word || op_2_size == Size::Word {
+                                    error(12, assignment.var_name.0.clone())
+                                }
+                            },
+                            Size::Word => {
+                                    
+                            }
                         }
                     },
                     Operation::Unary => unreachable!()
@@ -340,6 +365,7 @@ pub fn analyze_func(functions: &Vec<Function>) -> bool {
  *  - 9:  Incorrect quantity of provided arguments
  *  - 10: Incorrect argument size
  *  - 11: Incorrect function call
+ *  - 12: Invalid sizes in expression
  *
  */
 
@@ -373,6 +399,7 @@ where
         9 => eprintln!("Incorrect quantity of provided arguments at `{:?}`", problem_struct),
         10 => eprintln!("Incorrect argument size `{:?}`", problem_struct),
         11 => eprintln!("Incorrect function call `{:?}`", problem_struct),
+        12 => eprint!("Invalid sizes of operands in assignment to var `{:?}`", problem_struct),
         _ => unreachable!(),
     }
     std::process::exit(1);

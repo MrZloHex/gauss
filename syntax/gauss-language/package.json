@@ -1,0 +1,25 @@
+{
+    "name": "gauss-language",
+    "displayName": "Gauss Language",
+    "description": "Syntax highlightinh for gauss programming language",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.62.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [{
+            "id": "gauss",
+            "aliases": ["Gauss", "gauss"],
+            "extensions": [".gis", ".gfs"],
+            "configuration": "./language-configuration.json"
+        }],
+        "grammars": [{
+            "language": "gauss",
+            "scopeName": "main.gis",
+            "path": "./syntaxes/gauss.tmLanguage.json"
+        }]
+    }
+}

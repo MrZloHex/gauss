@@ -2,10 +2,10 @@
 ; operators
 
 BYTE 1number: #34
-BYTE 2number
+WORD 2number
 2number = #35
 
 BYTE ressum
 ressum = 1number + 2number
-1number = #234 * #12
-2number = ressum - @func420[ #123 ]
+1number = #2345 * #1234
+; 2number = ressum - @func420[ #123 ]

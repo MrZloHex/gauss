@@ -189,17 +189,16 @@ pub fn into_nasm(
                         Operation::Binary(bin_operation) => {
                             code.push_str(format!("\t\t; Assigning result expresion to variable `{}`\n", assign.var_name.0.clone()).as_str());
                             let size = get_size_variable(&variables, assign.var_name);
+                            let (reg_op_1, reg_op_2) = match size {
+                                Size::Byte => ("al", "bl"),
+                                Size::Word => ("ax", "bx")
+                            };
                             match bin_operation.operand_1 {
                                 ValueType::Immediate(imm_value) => {
-                                    let value = match imm_value {
-                                        Value::Byte(v) => v as u16,
-                                        Value::Word(v) => v
-                                    };
-                                    match size {
-                                        Size::Byte => code.push_str(format!("\t\tmov\tal, {}\n", value).as_str()),
-                                        Size::Word => code.push_str(format!("\t\tmov\tax, {}\n", value).as_str())
-                                    }
-                                    
+                                    match imm_value {
+                                        Value::Byte(v) => code.push_str(format!("\t\tmov\tal, {}\n", v).as_str()),
+                                        Value::Word(v) => code.push_str(format!("\t\tmov\tax, {}\n", v).as_str())
+                                    };  
                                 },
                                 ValueType::Variable(variable_name) => {
                                     let size_op = get_size_variable(&variables, variable_name.clone());
@@ -219,15 +218,10 @@ pub fn into_nasm(
                             }
                             match bin_operation.operand_2 {
                                 ValueType::Immediate(imm_value) => {
-                                    let value = match imm_value {
-                                        Value::Byte(v) => v as u16,
-                                        Value::Word(v) => v
-                                    };
-                                    match size {
-                                        Size::Byte => code.push_str(format!("\t\tmov\tbl, {}\n", value).as_str()),
-                                        Size::Word => code.push_str(format!("\t\tmov\tbx, {}\n", value).as_str())
-                                    }
-                                    
+                                    match imm_value {
+                                        Value::Byte(v) => code.push_str(format!("\t\tmov\tbl, {}\n", v).as_str()),
+                                        Value::Word(v) => code.push_str(format!("\t\tmov\tbx, {}\n", v).as_str())
+                                    };                                    
                                 },
                                 ValueType::Variable(variable_name) => {
                                     let size_op = get_size_variable(&variables, variable_name.clone());
@@ -243,7 +237,14 @@ pub fn into_nasm(
                                     code.push_str(pre_fn_args(function_call.clone(), &variables).as_str());
                                     code.push_str(format!("\t\tcall _{}_\n", function_call.name.0).as_str());
                                     code.push_str(post_fn_args(function_call.argc).as_str());
+                                    code.push_str("\t\tmov\trbx, rax\n");
                                 }
+                            }
+                            match bin_operation.op_type {
+                                BinaryOpType::Addition       => code.push_str(format!("\t\tadd\t{}, {}\n", reg_op_1, reg_op_2).as_str()),
+                                BinaryOpType::Substraction   => code.push_str(format!("\t\tsub\t{}, {}\n", reg_op_1, reg_op_2).as_str()),
+                                BinaryOpType::Multiplication => code.push_str(format!("\t\tmul\t{}\n", reg_op_2).as_str()),
+                                BinaryOpType::Division       => code.push_str(format!("\t\tdiv\t{}, {}\n", reg_op_1, reg_op_2).as_str())
                             }
                         },
                         Operation::Unary => ()

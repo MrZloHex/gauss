@@ -1,0 +1,29 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "Gauss",
+	"patterns": [
+		{
+			"include": "#keywords"
+		},
+		{
+			"include": "#sizes"
+		}
+	],
+	"repository": {
+		"keywords": {
+			"patterns": [{
+				"name": "keyword.control.gauss",
+				"match": "\\b(RET|USES)\\b"
+			}]
+		},
+		"sizes": {
+			"patterns": [
+				{
+					"name": "keyword.size.var.gauss",
+					"match": "\\b(BYTE|WORD)\\b"
+				}
+			]
+		}
+	},
+	"scopeName": "main.gis"
+}

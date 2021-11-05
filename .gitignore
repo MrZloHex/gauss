@@ -4,3 +4,4 @@ gauss-fnset/target/
 gt.sh
 *.o
 TODO
+syntax/gauss-language/.vscode/
