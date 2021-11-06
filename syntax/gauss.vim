@@ -13,9 +13,11 @@ if exists("b:current_syntax")
 endif
 
 " Language keywords
-syntax keyword gaussKeywords RET 
-syntax keyword gaussDirectiveKeywords USES
-syntax keyword gaussTypeKeywords BYTE WORD
+syntax keyword gaussKeywords RET SYSCALL UNRET
+syntax keyword gaussConditionKeywords IF THEN
+syntax keyword gaussLoopKeywords WHILE DO FOR LOOP
+syntax keyword gaussDirectiveKeywords USES SET
+syntax keyword gaussTypeKeywords BYTE WORD DWORD QWORD PTR SEQ NULL
 
 " Values
 syntax region gaussImmediateValue start="#" end="\d\+"
@@ -25,8 +27,10 @@ syntax keyword gaussTodo contained TODO FIXME XXX NOTE
 syntax region gaussCommentLine start=";" end="$" contains=gaussTodo
 
 " Set highlights
-highlight default link gaussKeywords Statement
 highlight default link gaussTypeKeywords Type
+highlight default link gaussKeywords Statement
+highlight default link gaussConditionKeywords Conditional
+highlight default link gaussLoopKeywords Repeat
 highlight default link gaussDirectiveKeywords Include
 highlight default link gaussImmediateValue Number
 highlight default link gaussCommentLine Comment

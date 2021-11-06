@@ -1,5 +1,16 @@
 !USES <std.gfs>
 
-SEQ[13 BYTE] hello: "Hello World\n\0"
-@display [ &hello | WORD #13 ]
+!USES <cli.gfs>
+!USES <file.gfs>
+
+
+BYTE       argc
+SEQ[ PTR ] args
+
+SEQ[BYTE] gbi_filename
+PTR gbi_filename_p
+gbi_filename -> gbi_filename
+@parse_cli_gbi[ argc | args | gbi_filename_p ]
+
+
 @exit [ BYTE #0 ]

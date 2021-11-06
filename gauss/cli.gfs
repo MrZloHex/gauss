@@ -1,0 +1,24 @@
+; cli
+!USES <std.gfs>
+
+
+NULL parse_cli_gbi: [ BYTE argc | SEQ[PTR] args | PTR buffer ]
+ | IF argc != #2 THEN
+ |  | SEQ[BYTE] err_message: "Incorrect usage of `gauss`\n"
+ |  | PTR err_p -> err_message
+ |  | DWORD length
+ |  | length = @len[ err_p ]
+ |  | @f_write[ !STDERR | err_p | length ]
+ |  | @exit[ #1 ]
+ |  \_
+ | 
+ | DWORD length
+ | length = @len[ args:#1 ]
+ | SEQ[BYTE] info: "Provided gbi file: "
+ | PTR info_p -> info
+ | @f_write[ !STDOUT | info_p  | #19 ]
+ | @f_write[ !STDOUT | args:#1 | length ]
+ | @strcpy[ args:#1 | buffer ]
+ | RET [ ]
+ \_
+

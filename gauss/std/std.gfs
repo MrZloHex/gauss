@@ -1,0 +1,76 @@
+; STD
+
+!USES <std.gts>
+
+
+!SET <SYS_READ  -> #0>
+!SET <SYS_WRITE -> #1>
+!SET <SYS_OPEN  -> #2>
+!SET <SYS_CLOSE -> #3>
+!SET <SYS_EXIT  -> #60>
+
+!SET <STDIN  -> #0>
+!SET <STDOUT -> #1>
+!SET <STDERR -> #2>
+
+!SET <FM_READ  -> #0>
+!SET <FM_WRITE -> #1>
+!SET <FM_RDWR  -> #2>
+
+
+
+QWORD f_open: [ PTR filename | BYTE mode ]
+ | QWORD file_desc
+ | file_desc = SYSCALL [ !SYS_READ | filename | mode | #o666 ]
+ | RET [ file_desc ]
+ \_
+
+BYTE f_close: [ QWORD file_desc ]
+ | BYTE err
+ | err = SYSCALL [ !SYS_CLOSE | file_desc ]
+ | RET [ err ]
+ \_
+
+DWORD f_read: [ QWORD file_desc | PTR buffer | DWORD count ]
+ | DWORD bytes
+ | bytes = SYSCALL [ !SYS_READ | file_desc | buffer | count ]
+ | RET [ bytes ] 
+ \_
+
+DWORD f_write: [ QWORD file_desc | PTR buffer | DWORD count ]
+ | DWORD bytes
+ | bytes = SYSCALL [ !SYS_WRITE | file_desc | buffer | count ]
+ | RET [ bytes ]
+ \_
+
+UNRET exit: [ BYTE exit_code ]
+ | SYSCALL [ !SYS_EXIT | exit_code ]
+ \_
+
+DWORD len: [ PTR str ]
+ | DWORD length: #0
+ | LOOP
+ |  | BYTE char: >str<
+ |  | IF char = '\0' THEN
+ |  |  | BREAK
+ |  |  \_
+ |  | length = length + 1
+ |  | str = str + 1
+ |  \_
+ | RET [ length ]
+ \_
+
+NULL strcpy: [ PTR source | PTR destination ]
+ | WORD i: #0
+ | LOOP
+ |  | BYTE char
+ |  | char = >source<
+ |  | >destination< = char
+ |  | source = source + 1
+ |  | destination = destination + 1
+ |  | IF char = '\0' THEN
+ |  |  | BREAK
+ |  |  \_
+ |  \_
+ | RET [ ]
+ \_
