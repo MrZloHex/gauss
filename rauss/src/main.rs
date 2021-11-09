@@ -38,7 +38,6 @@ fn main() {
     if !check_ext(is_filename.clone(), 0) {
         std::process::exit(1)
     }
-
     out_filename = is_filename.replace(".gis", ".asm");
 
     let code = load_file(is_filename);
@@ -80,9 +79,15 @@ fn main() {
         std::process::exit(1);
     }
 
-    let nasm = into_nasm(instructions, variables, functions);
-
-    store_file(nasm, out_filename);
+    //let nasm = into_nasm(instructions, variables, functions);
+    
+    let program = Program {
+        instructions,
+        variables,
+        functions
+    };
+    let gos = ron::to_string(&program).expect("can't");
+    store_file(gos, "gauss.gos".to_string());
 
     // TODO
     // if let Some(directives) = directives_o {
@@ -93,6 +98,12 @@ fn main() {
     //         // }
     //     }
     // }
+}
+#[derive(serde::Serialize)]
+struct Program {
+    instructions: Vec<types::Instruction>,
+    variables:    Vec<types::Variable>,
+    functions:    Vec<types::Function>
 }
 
 fn check_ext(filename: String, type_ext: u8) -> bool {

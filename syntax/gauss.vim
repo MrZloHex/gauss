@@ -16,8 +16,8 @@ endif
 syntax keyword gaussKeywords RET SYSCALL UNRET
 syntax keyword gaussConditionKeywords IF THEN
 syntax keyword gaussLoopKeywords WHILE DO FOR LOOP
-syntax keyword gaussDirectiveKeywords USES SET
-syntax keyword gaussTypeKeywords BYTE WORD DWORD QWORD PTR SEQ NULL
+syntax keyword gaussDirectiveKeywords USES SET ARGS
+syntax keyword gaussTypeKeywords BYTE WORD DWORD QWORD TWORD PTR SEQ NULL
 
 " Values
 syntax region gaussImmediateValue start="#" end="\d\+"

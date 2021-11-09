@@ -1,12 +1,10 @@
-!USES <std.gfs>
+!USES <std/std.gfs>
 
 !USES <cli.gfs>
 !USES <file.gfs>
 !USES <ext.gfs>
 
-
-BYTE       argc
-SEQ[ PTR ] args
+!ARGS <argc | args>
 
 SEQ[BYTE] gis_filename
 PTR gis_filename_p
