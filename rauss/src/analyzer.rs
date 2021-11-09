@@ -3,6 +3,7 @@ use crate::types::*;
 pub fn analyze_instr(
     instructions_p: &Vec<Instruction>,
     functions_p: &Vec<Function>,
+    arguments_p: &(Indent, Indent)
 ) -> (bool, Vec<Variable>) {
     let variables = get_vars(instructions_p);
     let assignments = get_assign(instructions_p);

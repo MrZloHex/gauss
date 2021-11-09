@@ -6,13 +6,14 @@
 
 !ARGS <argc | args>
 
-SEQ[BYTE] gis_filename
-PTR gis_filename_p
-gis_filename_p -> gis_filename
+!SET < MY_MACRO | #1 >
+
+QWORD gis_filename
+QWORD gis_filename_p -> gis_filename
 @parse_cli_gis[ argc | args | gis_filename_p ]
 
 @check_extension[ !GIS | gis_filename_p ]
 
-SEQ[BYTE] gis_source_code
+QWORD gis_source_code
 
 @exit [ BYTE #0 ]

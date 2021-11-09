@@ -1,0 +1,9 @@
+; Hello World
+
+!USES </home/zs/gauss/gauss/std/std.gfs>
+
+QWORD hello -> "Hello World!\n"
+DWORD length
+length = @len[ hello ]
+@f_write[ !STDOUT | hello | length ]
+@exit[ #0 ]

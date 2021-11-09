@@ -767,8 +767,6 @@ pub fn lex_direct(code: Vec<u8>) -> Vec<Directive> {
     let mut DirArgs: Vec<String> = Vec::new();
     let mut parseDirType = false;
     let mut DirTypeStr = String::new();
-    let mut parseDirIndent = false;
-    let mut DirIndentStr = String::new();
 
     let mut column: usize = 0;
     let mut row: usize = 1;
@@ -808,7 +806,7 @@ pub fn lex_direct(code: Vec<u8>) -> Vec<Directive> {
                 }
             }
             if parseDirective {
-                if !parseDirArgs && !parseDirType && !parseDirIndent {
+                if !parseDirArgs && !parseDirType {
                     match symbol {
                         '<' => parseDirArgs = true,
                         'A'..='Z' => parseDirType = true,
@@ -822,21 +820,7 @@ pub fn lex_direct(code: Vec<u8>) -> Vec<Directive> {
                             parseDirArgs = true;
                             parseDirType = false;
                         }
-                        '_' | 'a'..='z' | '1'..='9' => {
-                            parseDirIndent = true;
-                            parseDirType = false;
-                        }
                         _ => error(0, row, column, symbol),
-                    }
-                }
-                if parseDirIndent {
-                    if symbol == '<' {
-                        parseDirArgs = true;
-                        parseDirIndent = false;
-                    } else if symbol == '\n' {
-                        parseDirIndent = false;
-                    } else {
-                        DirIndentStr.push(symbol);
                     }
                 }
                 if parseDirArgs {
@@ -865,7 +849,7 @@ pub fn lex_direct(code: Vec<u8>) -> Vec<Directive> {
         if pushDirective {
             pushDirective = false;
             if get_type_dir(DirTypeStr.clone()) {
-                match get_directive(DirTypeStr, DirIndentStr, DirArgs) {
+                match get_directive(DirTypeStr, DirArgs) {
                     Ok(dir) => directives.push(dir),
                     Err(_) => error(6, row, column, symbol),
                 }
@@ -874,7 +858,6 @@ pub fn lex_direct(code: Vec<u8>) -> Vec<Directive> {
             }
 
             DirTypeStr = String::new();
-            DirIndentStr = String::new();
             DirArgs = Vec::new();
         }
     }
@@ -924,11 +907,12 @@ fn get_type_dir(dir: String) -> bool {
     match dir.as_str() {
         "USES" => true,
         "SET" => true,
+        "ARGS" => true,
         _ => false,
     }
 }
 
-fn get_directive(dir: String, _indent: String, args: Vec<String>) -> Result<Directive, ()> {
+fn get_directive(dir: String, args: Vec<String>) -> Result<Directive, ()> {
     match dir.as_str() {
         "USES" => {
             let arguments: Vec<Indent> = args
@@ -936,7 +920,19 @@ fn get_directive(dir: String, _indent: String, args: Vec<String>) -> Result<Dire
                 .map(|arg: &String| Indent((*arg).clone()))
                 .collect();
             Ok(Directive::Use(arguments))
+        },
+        "ARGS" => {
+            if args.len() != 2 {
+                return Err(());
+            }
+            Ok(Directive::Args((Indent(args[0].clone()), Indent(args[1].clone()))))
+        },
+        "SET" => {
+            if args.len() != 2 {
+                return Err(());
+            }
+            Ok(Directive::Set(args[0].clone(), args[1].clone()))
         }
-        _ => Err(()),
+        _ => Err(())
     }
 }

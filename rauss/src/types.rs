@@ -36,6 +36,8 @@ pub_struct!( FunctionCall {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Directive {
     Use(Vec<Indent>),
+    Args((Indent, Indent)),
+    Set(String, String)
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]

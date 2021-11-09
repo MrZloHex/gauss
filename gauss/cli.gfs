@@ -2,13 +2,12 @@
 !USES <std.gfs>
 
 
-NULL parse_cli_gis: [ BYTE argc | SEQ[PTR] args | PTR buffer ]
+NULL parse_cli_gis: [ BYTE argc | QWORD args | QWORD buffer ]
  | IF argc != #2 THEN
- |  | SEQ[BYTE] err_message: "Incorrect usage of `gauss`\n"
- |  | PTR err_p -> err_message
+ |  | QWORD err_message: "Incorrect usage of `gauss`\n"
  |  | DWORD length
- |  | length = @len[ err_p ]
- |  | @f_write[ !STDERR | err_p | length ]
+ |  | length = @len[ err_message ]
+ |  | @f_write[ !STDERR | err_message | length ]
  |  | @exit[ #1 ]
  |  \_
  | 
