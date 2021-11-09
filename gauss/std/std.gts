@@ -5,4 +5,7 @@
 ; DECLARE mystruct:
 ;  | BYTE field1
 ;  |	
-;  \_V
+;  \_
+
+DECLARE U8: BYTE [0..]
+

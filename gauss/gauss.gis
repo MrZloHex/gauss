@@ -2,15 +2,19 @@
 
 !USES <cli.gfs>
 !USES <file.gfs>
+!USES <ext.gfs>
 
 
 BYTE       argc
 SEQ[ PTR ] args
 
-SEQ[BYTE] gbi_filename
-PTR gbi_filename_p
-gbi_filename -> gbi_filename
-@parse_cli_gbi[ argc | args | gbi_filename_p ]
+SEQ[BYTE] gis_filename
+PTR gis_filename_p
+gis_filename_p -> gis_filename
+@parse_cli_gis[ argc | args | gis_filename_p ]
 
+@check_extension[ !GIS | gis_filename_p ]
+
+SEQ[BYTE] gis_source_code
 
 @exit [ BYTE #0 ]
