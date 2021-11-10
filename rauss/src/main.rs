@@ -1,3 +1,5 @@
+use std::char::from_u32_unchecked;
+
 use clap::{load_yaml, App};
 
 mod types;
@@ -18,8 +20,8 @@ use analyzer::{
 mod compile;
 use compile::into_nasm;
 
-mod preproc;
-use preproc::pre_proc_direct;
+// mod preproc;
+// use preproc::pre_proc_direct;
 
 fn main() {
     // Allocating memory for files' names
@@ -43,13 +45,15 @@ fn main() {
     }
     out_filename = is_filename.replace(".gis", ".asm");
 
-    // get source code
-    let mut code = load_file(is_filename);
+    // get source code  
+    let code = load_file(is_filename);
+
+    
     
     // get directives
     let directives = lex_direct(code.clone());
-    let mut is_cli_arguments = false;
-    let mut arguments = (types::Indent(String::new()), types::Indent(String::new()));
+    let mut _is_cli_arguments = false;
+    let mut _arguments = (types::Indent(String::new()), types::Indent(String::new()));
     for directive in &directives {
         match (*directive).clone() {
             types::Directive::Use(mut files_i) => {
@@ -57,38 +61,47 @@ fn main() {
                 filenames_func.append(&mut files_i);
             },
             types::Directive::Args(args) => {
-                is_cli_arguments = true;
-                arguments = args;
+                _is_cli_arguments = true;
+                _arguments = args;
             },
-            _ => (),
         }
     }
-    pre_proc_direct(&directives, &mut code);
-    println!("");
-    for s in code {
-        print!("{}", s as char)
-    }
-    println!("");
-    // get directives from function sets
-    // if is_functions {
-    //     for fs in filenames_func {
-    //         let fs_filename = fs.0.clone();
-    //         if !check_ext(fs_filename.clone(), 1) {
-    //             std::process::exit(1)
-    //         }
-    //         let function_code = load_file(fs_filename);
-    //         let func_directives = lex_direct(function_code.clone());
-    //         for f_d in &func_directives { println!("{:?}", f_d) }
-    //         pre_proc_direct(&func_directives, &function_code);
-    //         // functions.append(&mut lex_func(functions_code));
-    //     }
-    //     // for func in &functions { println!("{:?}", func) }
-    //     if !analyze_func(&functions) {
-    //         eprintln!("\nFAILED TO CHECK FUNCTIONS");
-    //         std::process::exit(1);
-    //     }
-    // }
 
+
+
+    // get directives from function sets
+    if is_functions {
+        let mut index = 0;
+        while index < filenames_func.len() {
+            let fs_filename = filenames_func[index].0.clone();
+            if !check_ext(fs_filename.clone(), 1) {
+                std::process::exit(1)
+            }
+            let function_code = load_file(fs_filename);
+            let func_directives = lex_direct(function_code.clone());
+            for f_dir in func_directives {
+                match f_dir {
+                    types::Directive::Use(mut files_i) => {
+                        filenames_func.append(&mut files_i);
+                    },
+                    types::Directive::Args(_) => {
+                        eprintln!("You can't use ARGS directive in .gfs files");
+                        std::process::exit(1);
+                    }
+                }
+            }
+            index += 1;
+            functions.append(&mut lex_func(function_code));
+        }
+        for func in &functions { println!("{:?}", func) }
+        if !analyze_func(&functions) {
+            eprintln!("\nFAILED TO CHECK FUNCTIONS");
+            std::process::exit(1);
+        }
+    }
+
+
+    // preprocess(&mut code, &directives);
 
 
     // get set of instructi0ns
@@ -124,12 +137,8 @@ fn main() {
     //     }
     // }
 }
-#[derive(serde::Serialize)]
-struct Program {
-    instructions: Vec<types::Instruction>,
-    variables:    Vec<types::Variable>,
-    functions:    Vec<types::Function>
-}
+
+
 
 fn check_ext(filename: String, type_ext: u8) -> bool {
     let smt: Vec<&str> = filename.split('.').collect();

@@ -1,0 +1,7 @@
+; qwe
+!USES </home/zs/gauss/gauss/std/std.gfs>
+
+NULL display: [ QWORD str ]
+ | DWORD length = @len[ str ]
+ | @f_write[ #0 | str | length ]
+ \_

@@ -1,18 +1,14 @@
-!USES <std/std.gfs>
-
 !USES <cli.gfs>
 !USES <file.gfs>
 !USES <ext.gfs>
 
 !ARGS <argc | args>
 
-!SET < MY_MACRO | #1 >
 
 QWORD gis_filename
-QWORD gis_filename_p -> gis_filename
-@parse_cli_gis[ argc | args | gis_filename_p ]
+@parse_cli_gis[ argc | args | gis_filename ]
 
-@check_extension[ !GIS | gis_filename_p ]
+@check_extension[ #1 | gis_filename_p ]
 
 QWORD gis_source_code
 

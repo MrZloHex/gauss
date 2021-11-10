@@ -37,7 +37,6 @@ pub_struct!( FunctionCall {
 pub enum Directive {
     Use(Vec<Indent>),
     Args((Indent, Indent)),
-    Set(String, String)
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]

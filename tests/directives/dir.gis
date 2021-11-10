@@ -1,6 +1,7 @@
 ; Testing directives
 
 !SET < QWE_WER | #420 >
+!SET < QWE | #69 >
 
-BYTE var1: #69
+BYTE var1: !QWE
 WORD var2: !QWE_WER

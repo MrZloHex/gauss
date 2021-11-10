@@ -906,7 +906,6 @@ fn get_size(size_str: String) -> Result<Size, ()> {
 fn get_type_dir(dir: String) -> bool {
     match dir.as_str() {
         "USES" => true,
-        "SET" => true,
         "ARGS" => true,
         _ => false,
     }
@@ -927,12 +926,6 @@ fn get_directive(dir: String, args: Vec<String>) -> Result<Directive, ()> {
             }
             Ok(Directive::Args((Indent(args[0].clone()), Indent(args[1].clone()))))
         },
-        "SET" => {
-            if args.len() != 2 {
-                return Err(());
-            }
-            Ok(Directive::Set(args[0].clone(), args[1].clone()))
-        }
         _ => Err(())
     }
 }

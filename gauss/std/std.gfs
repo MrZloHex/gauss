@@ -1,46 +1,32 @@
 ; STD
-!SET <SYS_READ  | #0>
-!SET <SYS_WRITE | #1>
-!SET <SYS_OPEN  | #2>
-!SET <SYS_CLOSE | #3>
-!SET <SYS_EXIT  | #60>
-
-!SET <STDIN  | #0>
-!SET <STDOUT | #1>
-!SET <STDERR | #2>
-
-!SET <FM_READ  | #0>
-!SET <FM_WRITE | #1>
-!SET <FM_RDWR  | #2>
-
 
 
 QWORD f_open: [ QWORD filename_p | BYTE mode ]
  | QWORD file_desc
- | file_desc = SYSCALL [ !SYS_READ | filename_p | mode | #o666 ]
+ | file_desc = SYSCALL [ #0 | filename_p | mode | #438 ]
  | RET [ file_desc ]
  \_
 
 BYTE f_close: [ QWORD file_desc ]
  | BYTE err
- | err = SYSCALL [ !SYS_CLOSE | file_desc ]
+ | err = SYSCALL [ #3 | file_desc ]
  | RET [ err ]
  \_
 
 DWORD f_read: [ QWORD file_desc | QWORD buffer | DWORD count ]
  | DWORD bytes
- | bytes = SYSCALL [ !SYS_READ | file_desc | buffer | count ]
+ | bytes = SYSCALL [ #0 | file_desc | buffer | count ]
  | RET [ bytes ] 
  \_
 
 DWORD f_write: [ QWORD file_desc | QWORD buffer | DWORD count ]
  | DWORD bytes
- | bytes = SYSCALL [ !SYS_WRITE | file_desc | buffer | count ]
+ | bytes = SYSCALL [ #1 | file_desc | buffer | count ]
  | RET [ bytes ]
  \_
 
 UNRET exit: [ BYTE exit_code ]
- | SYSCALL [ !SYS_EXIT | exit_code ]
+ | SYSCALL [ #60 | exit_code ]
  \_
 
 DWORD len: [ QWORD str ]

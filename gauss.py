@@ -17,7 +17,6 @@ def load_file(filename: str) -> list:
 
 def spawn_compiler(GIS: str):
     print("COMPILING")
-    print("/".join(GIS.split('/')[:-1]))
     cmd = ["cd", "/".join(GIS.split('/')[:-1]), "&&", "exec", "/home/zs/gauss/rauss/target/release/rauss","--input",GIS.split('/')[-1] ]
     GISC = subprocess.run(" ".join(cmd), shell=True)
     if GISC.returncode != 0:

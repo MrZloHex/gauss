@@ -7,7 +7,7 @@ NULL parse_cli_gis: [ BYTE argc | QWORD args | QWORD buffer ]
  |  | QWORD err_message: "Incorrect usage of `gauss`\n"
  |  | DWORD length
  |  | length = @len[ err_message ]
- |  | @f_write[ !STDERR | err_message | length ]
+ |  | @f_write[ #2 | err_message | length ]
  |  | @exit[ #1 ]
  |  \_
  | 
@@ -15,12 +15,12 @@ NULL parse_cli_gis: [ BYTE argc | QWORD args | QWORD buffer ]
  | length = @len[ args:#1 ]
  | SEQ[BYTE] info: "Provided gis file: "
  | PTR info_p -> info
- | @f_write[ !STDOUT | info_p  | #19 ]
- | @f_write[ !STDOUT | args:#1 | length ]
+ | @f_write[ #0 | info_p  | #19 ]
+ | @f_write[ #0 | args:#1 | length ]
  | @strcpy[ args:#1 | buffer ]
  | SEQ[BYTE] nl: "\n"
  | PTR nl_p -> nl
- | @f_write[ !STDOUT | nl_p  | #1 ]
+ | @f_write[ #0 | nl_p  | #1 ]
  | RET [ ]
  \_
 

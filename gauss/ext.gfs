@@ -1,8 +1,5 @@
 ; ext
 
-!SET <GIS | #1>
-!SET <GFS | #2>
-
 NULL check_extension: [ BYTE extension | QWORD filename ]
  | 
  | RET [ ]
