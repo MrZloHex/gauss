@@ -440,7 +440,8 @@ pub fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
     let mut row: usize = 1;
     let mut column: usize = 0;
 
-    let mut comment = false;
+    let mut comment   = false;
+    let mut directive = false;
 
     let mut pushVar = false;
 
@@ -487,6 +488,19 @@ pub fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
         if comment {
             if sym_code == 0xA {
                 comment = false;
+                continue;
+            } else {
+                continue;
+            }
+        }
+
+        if symbol == '!' {
+            directive = true;
+            continue;
+        }
+        if directive {
+            if sym_code == 0xA {
+                directive = false;
                 continue;
             } else {
                 continue;
