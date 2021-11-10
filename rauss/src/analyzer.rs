@@ -35,7 +35,8 @@ pub fn analyze_instr(
                     if variable.size != Size::Word {
                         error(0, variable)
                     }
-                }
+                },
+                _ => unreachable!()
             },
             Init::Uninitilized => (),
         }
@@ -123,7 +124,8 @@ pub fn analyze_instr(
                             if size_var != Size::Word {
                                 error(2, assignment.var_name.clone())
                             }
-                        }
+                        },
+                        _ => unreachable!()
                     }
                 }
                 ValueType::Variable(var) => {
@@ -162,7 +164,8 @@ pub fn analyze_instr(
                                 ValueType::Immediate(val) => {
                                     match val {
                                         Value::Byte(_) => (), //OK  //if size != Size::Byte { error(10, f_arg.name.clone()) },
-                                        Value::Word(_) => if size != Size::Word { error(10, f_arg.name.clone()) }
+                                        Value::Word(_) => if size != Size::Word { error(10, f_arg.name.clone()) },
+                                        _ => unreachable!()
                                     }
                                 },
                                 ValueType::Variable(var) => {
@@ -208,7 +211,8 @@ pub fn analyze_instr(
                             ValueType::Immediate(imm_value) => {
                                 match imm_value {
                                     Value::Byte(_) => Size::Byte,
-                                    Value::Word(_) => Size::Word
+                                    Value::Word(_) => Size::Word,
+                                    _ => unreachable!()
                                 }
                             }
                         };
@@ -232,7 +236,8 @@ pub fn analyze_instr(
                             ValueType::Immediate(imm_value) => {
                                 match imm_value {
                                     Value::Byte(_) => Size::Byte,
-                                    Value::Word(_) => Size::Word
+                                    Value::Word(_) => Size::Word,
+                                    _ => unreachable!()
                                 }
                             }
                         };
@@ -244,7 +249,8 @@ pub fn analyze_instr(
                             },
                             Size::Word => {
                                     
-                            }
+                            },
+                            _ => unreachable!()
                         }
                     },
                     Operation::Unary => unreachable!()
@@ -524,7 +530,8 @@ fn is_correct_function_call(function_call: &FunctionCall, functions: &Vec<Functi
                     ValueType::Immediate(val) => {
                         match val {
                             Value::Byte(_) => (), //OK  //if size != Size::Byte { error(10, f_arg.name.clone()) },
-                            Value::Word(_) => if size != Size::Word { error(10, f_arg.name.clone()) }
+                            Value::Word(_) => if size != Size::Word { error(10, f_arg.name.clone()) },
+                            _ => unreachable!()
                         }
                     },
                     ValueType::Variable(var) => {

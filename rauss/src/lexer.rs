@@ -111,8 +111,8 @@ pub fn lex_instr(source_code: Vec<u8>) -> Vec<Instruction> {
                 continue;
             }
             match symbol {
-                'B' | 'W' => isVariable = true,
-                'a'..='z' | '0'..='9' => isAssignment = true,
+                'B' | 'W' | 'N' | 'D' | 'Q' => isVariable = true,
+                'a'..='z' | '0'..='9' | '_' => isAssignment = true,
                 _ => unreachable!(symbol),
             }
         }
@@ -120,8 +120,8 @@ pub fn lex_instr(source_code: Vec<u8>) -> Vec<Instruction> {
         if isVariable {
             if !parseSizeVar && !parseIndentVar && !parseValueVar {
                 match symbol {
-                    'B' | 'W' | 'D' => parseSizeVar = true,
-                    'a'..='z' | '0'..='9' => parseIndentVar = true,
+                    'B' | 'W' | 'N' | 'D' | 'Q' => parseSizeVar = true,
+                    'a'..='z' | '0'..='9' | '_' => parseIndentVar = true,
                     '#' => parseValueVar = true,
                     _ => unreachable!(symbol),
                 }
@@ -129,7 +129,7 @@ pub fn lex_instr(source_code: Vec<u8>) -> Vec<Instruction> {
 
             if parseSizeVar {
                 match symbol {
-                    'a'..='z' | '0'..='9' => {
+                    'a'..='z' | '0'..='9' | '_' => {
                         parseSizeVar = false;
                         pushSizeVar = true;
                         parseIndentVar = true;
@@ -141,7 +141,7 @@ pub fn lex_instr(source_code: Vec<u8>) -> Vec<Instruction> {
                     SizeVarStr.push(symbol)
                 } else {
                     pushSizeVar = false;
-                    match get_size(SizeVarStr) {
+                    match get_size(&SizeVarStr) {
                         Ok(sz) => SizeVar = sz,
                         Err(_) => error(2, row, column, symbol),
                     }
@@ -194,6 +194,7 @@ pub fn lex_instr(source_code: Vec<u8>) -> Vec<Instruction> {
                                 Value::Word(0)
                             }
                         },
+                        _ => unreachable!()
                     };
                     ValVarStr = String::new();
                 } else {
@@ -229,7 +230,7 @@ pub fn lex_instr(source_code: Vec<u8>) -> Vec<Instruction> {
         if isAssignment {
             if !parseVarIndent && !parseValueType {
                 match symbol {
-                    'a'..='z' | '0'..='9' => parseVarIndent = true,
+                    'a'..='z' | '0'..='9' | '_' => parseVarIndent = true,
                     _ => unreachable!(symbol),
                 }
             }
@@ -395,7 +396,7 @@ fn get_value_type(code: String) -> Result<ValueType, u8> {
 pub fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
     let mut used_chars: [char; 75] = [0 as char; 75];
     let spec_chars = [
-        ':', '#', '[', ']', '|', '\n', '*', '&', '+', '-', '/', '\\', '_',
+        ':', '#', '[', ']', '|', '\n', '@', '=', '+', '-', '/', '\\', '_',
     ];
     for (i, c) in ('a'..='z').enumerate() {
         used_chars[i] = c;
@@ -414,28 +415,27 @@ pub fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
     let mut arguments: Vec<Argument> = Vec::new();
     let mut variables: Vec<Variable> = Vec::new();
 
-    let mut isFunc = false;
-    let mut isFuncEnd = false;
-    let mut pushFunc = false;
+    let mut is_func = false;
+    let mut is_func_end = false;
+    let mut push_func = false;
 
-    let mut FuncName = String::new();
+    let mut func_name = String::new();
 
-    let mut parseIndent = false;
-    let mut indent = String::new();
+    let mut parse_func_indent = false;
+    let mut func_indent = String::new();
 
-    let mut parseArgs = false;
-    let mut parseSizeArg = false;
-    let mut SizeArg: Size = Size::Byte;
-    let mut SizeArgStr = String::new();
-    let mut parseIndentArg = false;
-    let mut IndentArg = String::new();
-    let mut pushArg = false;
-    let mut Arg: Argument;
+    let mut parse_args = false;
+    let mut parse_size_arg = false;
+    let mut size_arg: Size = Size::Byte;
+    let mut size_arg_str = String::new();
+    let mut parse_indent_arg = false;
+    let mut indent_arg = String::new();
+    let mut push_arg = false;
 
-    let mut parseRet = false;
-    let mut SizeRet = Size::Byte;
-    let mut SizeRetStr = String::new();
-    let mut pushRet = false;
+    let mut parse_ret_size = false;
+    let mut ret_size = Size::Byte;
+    let mut ret_size_str = String::new();
+    let mut push_ret_size = false;
 
     let mut row: usize = 1;
     let mut column: usize = 0;
@@ -443,15 +443,16 @@ pub fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
     let mut comment   = false;
     let mut directive = false;
 
-    let mut pushVar = false;
+    let mut push_loc_var = false;
 
-    let mut parseSizeVar = false;
-    let mut pushSizeVar = false;
-    let mut SizeVarStr = String::new();
-    let mut SizeVar = Size::Byte;
+    let mut parse_size_loc_var = false;
+    let mut push_size_loc_var = false;
+    let mut size_loc_var_str = String::new();
+    let mut size_loc_var = Size::Byte;
 
-    let mut parseIndentVar = false;
-    let mut VarName = String::new();
+    let mut parse_loc_var_indent = false;
+    let mut loc_var_indent = String::new();
+    let mut loc_var_name = String::new();
 
     let mut parseValueVar = false;
     let mut pushValVar = false;
@@ -511,65 +512,67 @@ pub fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
             error(0, row, column, symbol)
         }
 
-        if isFunc {
-            if isFuncEnd {
+        if is_func {
+            if is_func_end {
                 if symbol == '_' {
-                    isFunc = false;
-                    isFuncEnd = false;
-                    pushFunc = true;
+                    is_func = false;
+                    is_func_end = false;
+                    push_func = true;
                 }
             }
 
             if symbol == '|' {
                 continue;
             }
-            if isFunc
-                && !parseSizeVar
+            if is_func
+                && !parse_size_loc_var
                 && !parseRetExpr
-                && !parseIndentVar
+                && !parse_loc_var_indent
                 && !parseValueVar
-                && !isFuncEnd
+                && !is_func_end
             {
                 match symbol {
-                    'B' | 'W' | 'N' | 'D' => parseSizeVar = true,
+                    'B' | 'W' | 'N' | 'D' | 'Q' => parse_size_loc_var = true,
                     'R' => parseRetExpr = true,
-                    'a'..='z' | '0'..='9' => parseIndentVar = true,
+                    'a'..='z' | '0'..='9' | '_' => parse_loc_var_indent = true,
                     '#' => parseValueVar = true,
-                    '\\' => isFuncEnd = true,
+                    '\\' => is_func_end = true,
                     '\n' => (),
                     _ => unreachable!(symbol),
                 }
             }
 
-            if parseSizeVar {
+            if parse_size_loc_var {
                 match symbol {
-                    'a'..='z' | '0'..='9' => {
-                        parseSizeVar = false;
-                        pushSizeVar = true;
-                        parseIndentVar = true;
+                    'a'..='z' | '0'..='9' | '_' => {
+                        parse_size_loc_var = false;
+                        push_size_loc_var = true;
+                        parse_loc_var_indent = true;
                     }
                     'A'..='Z' => (),
                     _ => unreachable!(),
                 }
-                if !pushSizeVar {
-                    SizeVarStr.push(symbol)
+                if !push_size_loc_var {
+                    size_loc_var_str.push(symbol)
                 } else {
-                    pushSizeVar = false;
-                    match get_size(SizeVarStr) {
-                        Ok(sz) => SizeVar = sz,
+                    push_size_loc_var = false;
+                    match get_size(&size_loc_var_str) {
+                        Ok(sz) => size_loc_var = sz,
                         Err(_) => error(2, row, column, symbol),
                     }
-                    SizeVarStr = String::new();
+                    println!("NEW LOC VAR SIZE: {}", size_loc_var_str);
+                    size_loc_var_str = String::new();
                 }
             }
 
-            if parseIndentVar {
-                if symbol == ':' {
-                    parseIndentVar = false;
-                    VarName = indent;
-                    indent = String::new();
+            if parse_loc_var_indent {
+                if symbol == '=' {
+                    parse_loc_var_indent = false;
+                    println!("LOC VAR NAME: {}", loc_var_indent);
+                    loc_var_name = loc_var_indent;
+                    loc_var_indent = String::new();
                 } else {
-                    indent.push(symbol);
+                    loc_var_indent.push(symbol);
                 }
             }
 
@@ -579,14 +582,14 @@ pub fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
                     '0'..='9' => (),
                     '\n' => {
                         parseValueVar = false;
-                        pushVar = true;
+                        push_loc_var = true;
                         pushValVar = true;
                     }
                     _ => unreachable!(symbol),
                 }
                 if pushValVar {
                     pushValVar = false;
-                    ValVar = match SizeVar {
+                    ValVar = match size_loc_var {
                         Size::Byte => match ValVarStr.parse::<u8>() {
                             Ok(val) => Value::Byte(val),
                             Err(_) => {
@@ -601,6 +604,7 @@ pub fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
                                 Value::Word(0)
                             }
                         },
+                        _ => unreachable!()
                     };
                     ValVarStr = String::new();
                 } else {
@@ -617,7 +621,7 @@ pub fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
                     }
                 } else {
                     match symbol {
-                        'a'..='z' | '0'..='9' => (),
+                        'a'..='z' | '0'..='9' | '_' => (),
                         ']' => {
                             parseRetVar = false;
                             parseRetExpr = false;
@@ -627,138 +631,141 @@ pub fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
                     }
                     if pushRetExpr {
                         pushRetExpr = false;
-                        RetVar = indent;
-                        indent = String::new();
+                        RetVar = func_indent;
+                        func_indent = String::new();
                     } else {
-                        indent.push(symbol);
+                        func_indent.push(symbol);
                     }
                 }
             }
 
-            if pushVar {
-                pushVar = false;
+            if push_loc_var {
+                push_loc_var = false;
                 let var = Variable {
-                    name: Indent(VarName),
-                    size: SizeVar,
+                    name: Indent(loc_var_name),
+                    size: size_loc_var,
                     init: Init::Initilized(ValVar),
                 };
                 variables.push(var);
 
-                VarName = String::new();
+                loc_var_name = String::new();
             }
         } else {
             if sym_code == 0xA {
                 continue;
             }
-            if !parseRet && !parseArgs && !parseIndent {
+            if !parse_ret_size && !parse_args && !parse_func_indent {
                 match symbol {
-                    'B' | 'W' | 'N' | 'D' => parseRet = true,
-                    'a'..='z' | '0'..='9' => parseIndent = true,
-                    '[' => parseArgs = true,
+                    'B' | 'W' | 'N' | 'D' | 'Q' => parse_ret_size = true,
+                    'a'..='z' | '0'..='9' | '_' => parse_func_indent = true,
+                    '[' => parse_args = true,
                     _ => unreachable!(),
                 }
             }
 
-            if parseRet {
+            if parse_ret_size {
                 match symbol {
-                    'a'..='z' | '0'..='9' => {
-                        parseRet = false;
-                        pushRet = true;
-                        parseIndent = true;
+                    'a'..='z' | '0'..='9' | '_' => {
+                        parse_ret_size = false;
+                        push_ret_size = true;
+                        parse_func_indent = true;
                     }
                     'A'..='Z' => (),
                     _ => unreachable!(),
                 }
-                if !pushRet {
-                    SizeRetStr.push(symbol)
+                if !push_ret_size {
+                    ret_size_str.push(symbol)
                 } else {
-                    pushRet = false;
-                    match get_size(SizeRetStr) {
-                        Ok(sz) => SizeRet = sz,
+                    push_ret_size = false;
+                    match get_size(&ret_size_str) {
+                        Ok(sz) => ret_size = sz,
                         Err(_) => error(2, row, column, symbol),
                     }
-                    SizeRetStr = String::new();
+                    println!("RET SIZE: {}", ret_size_str);
+                    ret_size_str = String::new();
                 }
             }
 
-            if parseIndent {
+            if parse_func_indent {
                 if symbol == ':' {
-                    parseIndent = false;
-                    FuncName = indent;
-                    indent = String::new();
+                    parse_func_indent = false;
+                    println!("FUNC NAME: {}", func_indent);
+                    func_name = func_indent;
+                    func_indent = String::new();
                 } else {
-                    indent.push(symbol);
+                    func_indent.push(symbol);
                 }
             }
 
-            if parseArgs {
+            if parse_args {
                 match symbol {
                     '[' => (),
-                    'A'..='Z' => parseSizeArg = true,
-                    'a'..='z' | '0'..='9' => parseIndentArg = true,
+                    'A'..='Z' => parse_size_arg = true,
+                    'a'..='z' | '0'..='9' | '_' => parse_indent_arg = true,
                     '|' => {
-                        pushArg = true;
-                        parseIndentArg = false;
+                        push_arg = true;
+                        parse_indent_arg = false;
                     }
                     ']' => {
-                        pushArg = true;
-                        parseArgs = false;
-                        parseIndentArg = false;
-                        isFunc = true;
+                        push_arg = true;
+                        parse_args = false;
+                        parse_indent_arg = false;
+                        is_func = true;
                     }
                     _ => unreachable!(),
                 }
-                if parseSizeArg {
+                if parse_size_arg {
                     match symbol {
-                        'a'..='z' | '0'..='9' => {
-                            parseSizeArg = false;
-                            parseIndentArg = true;
+                        'a'..='z' | '0'..='9' | '_' => {
+                            parse_size_arg = false;
+                            parse_indent_arg = true;
                         }
                         'A'..='Z' => (),
                         _ => unreachable!(),
                     }
-                    if !parseIndentArg {
-                        SizeArgStr.push(symbol);
+                    if !parse_indent_arg {
+                        size_arg_str.push(symbol);
                     } else {
-                        match get_size(SizeArgStr) {
-                            Ok(sz) => SizeArg = sz,
+                        match get_size(&size_arg_str) {
+                            Ok(sz) => size_arg = sz,
                             Err(_) => error(2, row, column, symbol),
                         }
-                        SizeArgStr = String::new();
+                        size_arg_str = String::new();
                     }
                 }
 
-                if parseIndentArg {
-                    IndentArg.push(symbol);
+                if parse_indent_arg {
+                    indent_arg.push(symbol);
                 }
 
-                if pushArg {
-                    pushArg = false;
-                    if IndentArg.is_empty() {
+                if push_arg {
+                    push_arg = false;
+                    if indent_arg.is_empty() {
                         continue;
                     }
-                    Arg = Argument {
-                        name: Indent(IndentArg),
-                        size: SizeArg,
+                    let arg = Argument {
+                        name: Indent(indent_arg),
+                        size: size_arg,
                     };
-                    arguments.push(Arg);
-                    IndentArg = String::new();
+                    println!("ARG: {:?}", arg);
+                    arguments.push(arg);
+                    indent_arg = String::new();
                 }
             }
         }
 
-        if pushFunc {
-            pushFunc = false;
+        if push_func {
+            push_func = false;
             let func = Function {
-                name: Indent(FuncName),
+                name: Indent(func_name),
                 argc: arguments.len(),
                 args: arguments,
-                ret_size: SizeRet,
+                ret_size,
                 vars: variables,
                 ret_var: Indent(RetVar),
             };
 
-            FuncName = String::new();
+            func_name = String::new();
             arguments = Vec::new();
             variables = Vec::new();
             RetVar = String::new();
@@ -909,10 +916,13 @@ fn error(err_code: u8, row: usize, column: usize, symbol: char) {
     std::process::exit(1);
 }
 
-fn get_size(size_str: String) -> Result<Size, ()> {
-    match size_str.as_str() {
-        "BYTE" => Ok(Size::Byte),
-        "WORD" => Ok(Size::Word),
+fn get_size(size_str: &String) -> Result<Size, ()> {
+    match (*size_str).as_str() {
+        "NULL"  => Ok(Size::Null),
+        "BYTE"  => Ok(Size::Byte),
+        "WORD"  => Ok(Size::Word),
+        "DWORD" => Ok(Size::Dword),
+        "QWORD" => Ok(Size::Qword),
         _ => Err(()),
     }
 }

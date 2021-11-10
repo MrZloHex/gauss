@@ -4,4 +4,5 @@
 NULL display: [ QWORD str ]
  | DWORD length = @len[ str ]
  | @f_write[ #0 | str | length ]
+ | RET [ ]
  \_

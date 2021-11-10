@@ -41,14 +41,20 @@ pub enum Directive {
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub enum Size {
+    Null,
     Byte,
     Word,
+    Dword,
+    Qword,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum Value {
+    Null,
     Byte(u8),
     Word(u16),
+    Dword(u32),
+    Qword(u64)
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

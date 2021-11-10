@@ -17,6 +17,7 @@ pub fn into_nasm(
         let (size, quantity) = match u_var.size {
             Size::Byte => ("resb", 1_u8),
             Size::Word => ("resw", 1_u8),
+            _ => unreachable!()
         };
         code.push_str(format!("\t_{}:\t{} {}\n", u_var.name.0, size, quantity).as_str());
     }
@@ -28,11 +29,13 @@ pub fn into_nasm(
         let size = match i_var.size {
             Size::Byte => "db",
             Size::Word => "dw",
+            _ => unreachable!()
         };
         let value = if let Init::Initilized(val) = i_var.init {
             match val {
                 Value::Byte(v) => v as u16,
                 Value::Word(v) => v,
+                _ => unreachable!()
             }
         } else {
             unreachable!()
@@ -62,6 +65,7 @@ pub fn into_nasm(
             match var.size {
                 Size::Byte => size_loc_vars += 1,
                 Size::Word => size_loc_vars += 2,
+                _ => unreachable!()
             }
         }
         let mut size_args: u64 = 0;
@@ -69,6 +73,7 @@ pub fn into_nasm(
             match arg.size {
                 Size::Byte => size_args += 1,
                 Size::Word => size_args += 2,
+                _ => unreachable!()
             }
         }
         code.push_str(format!("\t\tsub  rsp,\t{}\n", size_loc_vars + size_args).as_str());
@@ -88,7 +93,8 @@ pub fn into_nasm(
                     args_offset.insert(arg.name.clone(), args_p+2);
                     args_p += 2;
                     ("WORD", "ax")
-                }
+                },
+                _ => unreachable!()
             };
             let offset = args_offset.get(&arg.name).unwrap();
             code.push_str(format!("\t\tmov  rax, QWORD [rbp+{}]\n", (8 * (i+1)) + 8).as_str());
@@ -106,7 +112,8 @@ pub fn into_nasm(
                 Size::Word => {
                     vars_offset.insert(var.name.clone(), vars_p+2);
                     vars_p += 2;
-                }
+                },
+                _ => unreachable!()
             }
             match var.init {
                 Init::Initilized(value) => {
@@ -114,6 +121,7 @@ pub fn into_nasm(
                     match value {
                         Value::Byte(val) => code.push_str(format!("\t\tmov  BYTE [rbp-{}],\t{}\n", offset, val).as_str()),
                         Value::Word(val) => code.push_str(format!("\t\tmov  WORD [rbp-{}],\t{}\n", offset, val).as_str()),
+                        _ => unreachable!()
                     }
                 },
                 _ => (),
@@ -129,7 +137,8 @@ pub fn into_nasm(
         };
         match function.ret_size {
             Size::Byte => code.push_str(format!("\t\tmov  al,\tBYTE [rbp-{}]\n", offset).as_str()),
-            Size::Word => code.push_str(format!("\t\tmov  ax,\tWORD [rbp-{}]\n", offset).as_str())
+            Size::Word => code.push_str(format!("\t\tmov  ax,\tWORD [rbp-{}]\n", offset).as_str()),
+            _ => unreachable!()
         }
 
 
@@ -152,6 +161,7 @@ pub fn into_nasm(
                         let (value, size) = match val_imm {
                             Value::Byte(v) => (v as u16, "BYTE"),
                             Value::Word(v) => (v, "WORD"),
+                            _ => unreachable!()
                         };
                         code.push_str(format!("\t\t; Assigning value `{}` to variable `{}`\n", value.clone(), assign.var_name.0.clone()).as_str());
                         code.push_str(
@@ -163,6 +173,7 @@ pub fn into_nasm(
                         let (reg, size) = match var.size {
                             Size::Byte => ("al", "BYTE"),
                             Size::Word => ("ax", "WORD"),
+                            _ => unreachable!()
                         };
                         code.push_str(format!("\t\t; Assigning variable `{}` to variable `{}`\n", var_name.0.clone(), assign.var_name.0.clone()).as_str());
                         code.push_str(
@@ -178,6 +189,7 @@ pub fn into_nasm(
                         let (reg, size) = match get_size_variable(&variables, assign.var_name.clone()) {
                             Size::Byte => ("al", "BYTE"),
                             Size::Word => ("ax", "WORD"),
+                            _ => unreachable!()
                         };
                         code.push_str(format!("\t\tcall _{}_\n", func_call.name.0).as_str());
                         code.push_str(post_fn_args(func_call.argc).as_str());
@@ -191,13 +203,15 @@ pub fn into_nasm(
                             let size = get_size_variable(&variables, assign.var_name);
                             let (reg_op_1, reg_op_2) = match size {
                                 Size::Byte => ("al", "bl"),
-                                Size::Word => ("ax", "bx")
+                                Size::Word => ("ax", "bx"),
+                                _ => unreachable!()
                             };
                             match bin_operation.operand_1 {
                                 ValueType::Immediate(imm_value) => {
                                     match imm_value {
                                         Value::Byte(v) => code.push_str(format!("\t\tmov\tal, {}\n", v).as_str()),
-                                        Value::Word(v) => code.push_str(format!("\t\tmov\tax, {}\n", v).as_str())
+                                        Value::Word(v) => code.push_str(format!("\t\tmov\tax, {}\n", v).as_str()),
+                                        _ => unreachable!()
                                     };  
                                 },
                                 ValueType::Variable(variable_name) => {
@@ -207,7 +221,8 @@ pub fn into_nasm(
                                     }
                                     match size_op {
                                         Size::Byte => code.push_str(format!("\t\tmov\tal, BYTE [_{}]\n", variable_name.0).as_str()),
-                                        Size::Word => code.push_str(format!("\t\tmov\tax, WORD [_{}]\n", variable_name.0).as_str())
+                                        Size::Word => code.push_str(format!("\t\tmov\tax, WORD [_{}]\n", variable_name.0).as_str()),
+                                        _ => unreachable!()
                                     }
                                 },
                                 ValueType::FunctionValue(function_call) => {
@@ -220,7 +235,8 @@ pub fn into_nasm(
                                 ValueType::Immediate(imm_value) => {
                                     match imm_value {
                                         Value::Byte(v) => code.push_str(format!("\t\tmov\tbl, {}\n", v).as_str()),
-                                        Value::Word(v) => code.push_str(format!("\t\tmov\tbx, {}\n", v).as_str())
+                                        Value::Word(v) => code.push_str(format!("\t\tmov\tbx, {}\n", v).as_str()),
+                                        _ => unreachable!()
                                     };                                    
                                 },
                                 ValueType::Variable(variable_name) => {
@@ -230,7 +246,8 @@ pub fn into_nasm(
                                     }
                                     match size_op {
                                         Size::Byte => code.push_str(format!("\t\tmov\tbl, BYTE [_{}]\n", variable_name.0).as_str()),
-                                        Size::Word => code.push_str(format!("\t\tmov\tbx, WORD [_{}]\n", variable_name.0).as_str())
+                                        Size::Word => code.push_str(format!("\t\tmov\tbx, WORD [_{}]\n", variable_name.0).as_str()),
+                                        _ => unreachable!()
                                     }
                                 },
                                 ValueType::FunctionValue(function_call) => {
@@ -277,6 +294,7 @@ fn pre_fn_args(func_call: FunctionCall, vars_p: &Vec<Variable>) -> String {
                 match val {
                     Value::Byte(v) => code.push_str(format!("\t\tpush {}\n", v).as_str()),
                     Value::Word(v) => code.push_str(format!("\t\tpush {}\n", v).as_str()),
+                    _ => unreachable!()
                 }
             },
             ValueType::Variable(var_in) => {
@@ -284,6 +302,7 @@ fn pre_fn_args(func_call: FunctionCall, vars_p: &Vec<Variable>) -> String {
                 match var.size {
                     Size::Byte => code.push_str(format!("\t\tmov  al, BYTE [_{}]\n", var.name.0).as_str()),
                     Size::Word => code.push_str(format!("\t\tmov  ax, WORD [_{}]\n", var.name.0).as_str()),
+                    _ => unreachable!()
                 }
                 code.push_str("\t\tpush rax\n");
             },
