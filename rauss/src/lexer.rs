@@ -454,9 +454,15 @@ pub fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
     let mut loc_var_indent = String::new();
     let mut loc_var_name = String::new();
 
-    let mut parseValueVar = false;
+    let mut parse_var_val = false;
+    let mut parse_var_val_imm = false;
+    let mut parse_var_val_func = false;
+    let mut parse_var_val_func_args = false;
+    let mut var_val_func_indent = String::new();
+    let mut var_val_func_arg = String::new();
+    let mut var_val_func_args: Vec<ValueType> = Vec::new();
     let mut pushValVar = false;
-    let mut ValVar = Value::Byte(0);
+    let mut loc_var_value = ValueType::Immediate(Value::Byte(0));
     let mut ValVarStr = String::new();
 
     let mut parseRetExpr = false;
@@ -528,14 +534,13 @@ pub fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
                 && !parse_size_loc_var
                 && !parseRetExpr
                 && !parse_loc_var_indent
-                && !parseValueVar
+                && !parse_var_val
                 && !is_func_end
             {
                 match symbol {
                     'B' | 'W' | 'N' | 'D' | 'Q' => parse_size_loc_var = true,
                     'R' => parseRetExpr = true,
                     'a'..='z' | '0'..='9' | '_' => parse_loc_var_indent = true,
-                    '#' => parseValueVar = true,
                     '\\' => is_func_end = true,
                     '\n' => (),
                     _ => unreachable!(symbol),
@@ -571,45 +576,77 @@ pub fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
                     println!("LOC VAR NAME: {}", loc_var_indent);
                     loc_var_name = loc_var_indent;
                     loc_var_indent = String::new();
+                    parse_var_val = true;
+                    continue;
                 } else {
                     loc_var_indent.push(symbol);
                 }
             }
 
-            if parseValueVar {
-                match symbol {
-                    '#' => continue,
-                    '0'..='9' => (),
-                    '\n' => {
-                        parseValueVar = false;
-                        push_loc_var = true;
-                        pushValVar = true;
+            if parse_var_val {
+                if !parse_var_val_func && !parse_var_val_imm {
+                    match symbol {
+                        '#' => parse_var_val_imm  = true,
+                        '@' => parse_var_val_func = true,
+                        '\n' => {
+                            parse_var_val = false;
+                            push_loc_var = true;
+                            pushValVar = true;
+                        }
+                        _ => unreachable!(symbol),
                     }
-                    _ => unreachable!(symbol),
                 }
-                if pushValVar {
-                    pushValVar = false;
-                    ValVar = match size_loc_var {
-                        Size::Byte => match ValVarStr.parse::<u8>() {
-                            Ok(val) => Value::Byte(val),
-                            Err(_) => {
-                                error(3, row, column, symbol);
-                                Value::Byte(0)
-                            }
-                        },
-                        Size::Word => match ValVarStr.parse::<u16>() {
-                            Ok(val) => Value::Word(val),
-                            Err(_) => {
-                                error(3, row, column, symbol);
-                                Value::Word(0)
-                            }
-                        },
-                        _ => unreachable!()
-                    };
-                    ValVarStr = String::new();
-                } else {
-                    ValVarStr.push(symbol);
+
+                if parse_var_val_func {
+                    if symbol == '@' { continue }
+                    if parse_var_val_func_args {
+                        if symbol == '|' {
+
+                        } else {
+
+                        }
+                    } else {
+                        if symbol == '[' {
+                            parse_var_val_func_args = true;
+                        } else {
+                            var_val_func_indent.push(symbol);
+                        }
+                    }
+
+                } else if parse_var_val_imm {
+                    if symbol == '#' { continue }
+                    if parse_var_val_func_args {
+
+                    } else {
+
+                    }
                 }
+
+                // if pushValVar {
+                //     pushValVar = false;
+                //     loc_var_value = match size_loc_var {
+                //         Size::Byte => match ValVarStr.parse::<u8>() {
+                //             Ok(val) => Value::Byte(val),
+                //             Err(_) => {
+                //                 error(3, row, column, symbol);
+                //                 Value::Byte(0)
+                //             }
+                //         },
+                //         Size::Word => match ValVarStr.parse::<u16>() {
+                //             Ok(val) => Value::Word(val),
+                //             Err(_) => {
+                //                 error(3, row, column, symbol);
+                //                 Value::Word(0)
+                //             }
+                //         },
+                //         _ => unreachable!()
+                //     };
+                //     ValVarStr = String::new();
+                // } else {
+                //     if parse_var_val_imm {
+                //         ValVarStr.push(symbol);
+                //     }
+                // }
             }
 
             if parseRetExpr {
@@ -641,12 +678,12 @@ pub fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
 
             if push_loc_var {
                 push_loc_var = false;
-                let var = Variable {
-                    name: Indent(loc_var_name),
-                    size: size_loc_var,
-                    init: Init::Initilized(ValVar),
-                };
-                variables.push(var);
+                // let var = Variable {
+                //     name: Indent(loc_var_name),
+                //     size: size_loc_var,
+                //     init: Init::Initilized(loc_var_value),
+                // };
+                // variables.push(var);
 
                 loc_var_name = String::new();
             }
