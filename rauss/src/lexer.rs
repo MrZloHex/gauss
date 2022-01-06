@@ -603,7 +603,7 @@ pub fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
                         if symbol == '|' {
 
                         } else {
-
+                            
                         }
                     } else {
                         if symbol == '[' {
@@ -806,6 +806,7 @@ pub fn lex_func(source_code: Vec<u8>) -> Vec<Function> {
             arguments = Vec::new();
             variables = Vec::new();
             RetVar = String::new();
+            println!("FUNCTION:  : {:?}", func);
             functions.push(func);
         }
     }
