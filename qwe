@@ -1,8 +1,6 @@
 TYPE u8: UNSIGNED BYTE
 
-; Point of start
-
-FUNC main []
+FUNC main [] -> BYTE
  | LET my_var: u8
  | RET [ 0 ]
  \_

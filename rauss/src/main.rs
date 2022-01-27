@@ -8,7 +8,7 @@ mod file;
 use file::*;
 
 mod lexer;
-use lexer::{lex_direct, lex_func, lex_instr};
+use lexer::Lexer;
 
 mod analyzer;
 use analyzer::{
@@ -46,96 +46,12 @@ fn main() {
     out_filename = is_filename.replace(".gis", ".asm");
 
     // get source code  
-    let code = load_file(is_filename);
+    let code = load_file(&is_filename);
+    println!("{}", code);
 
+    let mut lexer = Lexer::new(code, is_filename);
+    lexer.lex();
     
-    
-    // get directives
-    let directives = lex_direct(code.clone());
-    let mut _is_cli_arguments = false;
-    let mut _arguments = (types::Indent(String::new()), types::Indent(String::new()));
-    for directive in &directives {
-        match (*directive).clone() {
-            types::Directive::Use(mut files_i) => {
-                is_functions = true;
-                filenames_func.append(&mut files_i);
-            },
-            types::Directive::Args(args) => {
-                _is_cli_arguments = true;
-                _arguments = args;
-            },
-        }
-    }
-
-
-
-    // get directives from function sets
-    if is_functions {
-        let mut index = 0;
-        while index < filenames_func.len() {
-            let fs_filename = filenames_func[index].0.clone();
-            if !check_ext(fs_filename.clone(), 1) {
-                std::process::exit(1)
-            }
-            let function_code = load_file(fs_filename);
-            let func_directives = lex_direct(function_code.clone());
-            for f_dir in func_directives {
-                match f_dir {
-                    types::Directive::Use(mut files_i) => {
-                        filenames_func.append(&mut files_i);
-                    },
-                    types::Directive::Args(_) => {
-                        eprintln!("You can't use ARGS directive in .gfs files");
-                        std::process::exit(1);
-                    }
-                }
-            }
-            index += 1;
-            functions.append(&mut lex_func(function_code));
-        }
-        for func in &functions { println!("{:?}", func) }
-        if !analyze_func(&functions) {
-            eprintln!("\nFAILED TO CHECK FUNCTIONS");
-            std::process::exit(1);
-        }
-    }
-
-
-    // preprocess(&mut code, &directives);
-
-
-    // get set of instructi0ns
-    // let instructions = lex_instr(code);
-    // for instr in &instructions {
-    // println!("{:?}", instr);
-    // }
-
-    // let (ok, variables) = analyze_instr(&instructions, &functions, &arguments);
-    // if !ok {
-    //     eprintln!("\nFAILED TO CHECK");
-    //     std::process::exit(1);
-    // }
-
-    // let nasm = into_nasm(instructions, variables, functions);
-    // store_file(nasm, "gauss.asm".to_string())
-
-    // let program = Program {
-    //     instructions,
-    //     variables,
-    //     functions
-    // };
-    // let gos = ron::to_string(&program).expect("can't");
-    // store_file(gos, "gauss.gos".to_string());
-
-    // TODO
-    // if let Some(directives) = directives_o {
-    //     for directive in directives {
-    //         println!("{:?}", directive);
-    //         // match directive {
-    //         //     Directive::Use(filnames) =>
-    //         // }
-    //     }
-    // }
 }
 
 

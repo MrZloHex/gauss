@@ -5,13 +5,25 @@ use std::io::{Read, Write};
 
 // use crate::types::*;
 
-pub fn load_file(filename: String) -> Vec<u8> {
-    let mut f = File::open(&filename).expect("no file found");
-    let metadata = metadata(&filename).expect("unable to read metadata");
-    let mut buffer = vec![0; metadata.len() as usize];
-    f.read(&mut buffer).expect("buffer overflow");
+pub fn load_file(filename: &String) -> String {
+    let mut file = match File::open(filename) {
+        Err(why) => {
+            eprintln!("ERROR: couldn't open {}: {}", filename, why);
+            std::process::exit(1);
+        },
+        Ok(file) => file,
+    };
 
-    buffer
+    let mut code = String::new();
+    match file.read_to_string(&mut code) {
+        Err(why) => {
+            eprintln!("ERROR: couldn't read {}: {}", filename, why);
+            std::process::exit(1);
+        },
+        Ok(_) => {}
+    }
+
+    code
 }
 
 pub fn store_file(content: String, filename: String) {
