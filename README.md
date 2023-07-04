@@ -22,3 +22,7 @@ BYTE res
 res = @baz[ foo | bar ]
 ```
 
+gbi - gauss build instruction
+gfs - gauss function set
+gis - gauss instruction set
+gts - gauss type set
