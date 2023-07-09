@@ -1,23 +1,35 @@
-CC = gcc
-C_FLAGS = -Wall -pedantic -Iinclude -O3
+CC = gcc 
+CFLAGS =  -g -O0 -Wall -Wextra -Wpedantic -std=c11 -Wstrict-aliasing
+CFLAGS += -Wno-old-style-declaration -Wno-implicit-fallthrough
+CFLAGS += -Iinc
 
-SRC_DIR = src
+LDFLAGS =
 
-TARGET  = causs
-SRCS    = $(wildcard $(SRC_DIR)/*.c)
+TARGET = causs
+INPUT = std.gts
 
-IF = /home/zs/gauss/tests/variables/var.gis
+SRC = src
+OBJ = obj
+BIN = bin
 
-.PHONY: all	
-all: clean $(TARGET) run 
-
-$(TARGET): $(SRCS)
-	$(CC) $^ $(C_FLAGS) -o $@
+SOURCES = $(wildcard $(SRC)/*.c)
+OBJECTS = $(patsubst $(SRC)/%.c, $(OBJ)/%.o, $(SOURCES))
 
 
-run: 
-	./$(TARGET) $(IF)
+all: clean compile
 
-.PHONY: clean
+compile: binary 
+run: clean compile execute
+
+binary: $(OBJECTS)
+	$(CC) -o $(BIN)/$(TARGET) $^ $(LDFLAGS)
+
+$(OBJ)/%.o: $(SRC)/%.c
+	$(CC) -o $@ -c $< $(CFLAGS)
+
+execute:
+	./$(BIN)/$(TARGET) ./$(BIN)/$(INPUT)
+
 clean:
-	-rm -f $(TARGET)
+	-rm $(BIN)/$(TARGET)
+	-rm $(OBJECTS)

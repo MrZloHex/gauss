@@ -47,6 +47,9 @@ read_file
 	return buffer;
 }
 
+
+#include "lexer/lexer.h"
+
 int
 main
 (
@@ -69,7 +72,7 @@ main
 	char *in_txt = read_file(ifl);
 	
 	fclose(ifl);
-	// printf("------FILE------\n%s-------END-OF-FILE------\n", in_txt);
+	printf("------FILE------\n%s-------END-OF-FILE------\n", in_txt);
 
 	free(in_txt);
 	return 0;
