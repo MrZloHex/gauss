@@ -13,7 +13,10 @@ typedef struct Lexer_S
 } Lexer;
 
 
+Lexer
+lexer_init(char *in);
+
 Lexeme *
-lex(Lexer *lx); // Parse file to lexemes
+lexer_lex(Lexer *lx); // Parse file to lexemes
 
 #endif /* __LEXER_LEXER_H__ */

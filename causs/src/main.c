@@ -74,6 +74,10 @@ main
 	fclose(ifl);
 	printf("------FILE------\n%s-------END-OF-FILE------\n", in_txt);
 
+	Lexer lx = lexer_init(in_txt);
 	free(in_txt);
+
+	lexer_lex(&lx);
+
 	return 0;
 }
