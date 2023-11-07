@@ -6,7 +6,7 @@ CFLAGS += -Iinc
 LDFLAGS =
 
 TARGET = causs
-INPUT = std.gts
+INPUT = ../gauss/std/std.gfs
 
 SRC = src
 OBJ = obj
@@ -28,7 +28,7 @@ $(OBJ)/%.o: $(SRC)/%.c
 	$(CC) -o $@ -c $< $(CFLAGS)
 
 execute:
-	./$(BIN)/$(TARGET) ./$(BIN)/$(INPUT)
+	./$(BIN)/$(TARGET) $(INPUT)
 
 clean:
 	-rm $(BIN)/$(TARGET)

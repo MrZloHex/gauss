@@ -45,12 +45,33 @@ redo:
 	// ONE CHAR LEN TOKENS
 	ps->next_tok += 1;
 	if (IS_COMMENT(fst_tok_ch))
-	{
-		TOKEN_OK_SYM(SYM_SEMICOLON);
-	}
+	{	TOKEN_OK_SYM(SYM_SEMICOLON);	}
 	else if (fst_tok_ch == SYM_COLON)
-	{	TOKEN_OK_SYM(SYM_COLON);	}
-    ps->next_tok -= 1;
+	{	TOKEN_OK_SYM(SYM_COLON);		}
+	else if (fst_tok_ch == SYM_PIPE)
+	{	TOKEN_OK_SYM(SYM_PIPE);			}
+	else if (fst_tok_ch == SYM_O_SQ_BRACK)
+	{	TOKEN_OK_SYM(SYM_O_SQ_BRACK);	}
+	else if (fst_tok_ch == SYM_C_SQ_BRACK)
+	{	TOKEN_OK_SYM(SYM_C_SQ_BRACK);	}
+	else if (fst_tok_ch == SYM_EQUAL)
+	{	TOKEN_OK_SYM(SYM_EQUAL);		}
+	else if (fst_tok_ch == SYM_BACKSLASH)
+	{	TOKEN_OK_SYM(SYM_BACKSLASH);	}
+	else if (fst_tok_ch == SYM_UNDESCORE)
+	{	TOKEN_OK_SYM(SYM_UNDESCORE);	}
+	else if (fst_tok_ch == SYM_PLUS)
+	{	TOKEN_OK_SYM(SYM_PLUS);			}
+	else if (fst_tok_ch == SYM_MINUS)
+	{	TOKEN_OK_SYM(SYM_MINUS);		}
+	else if (fst_tok_ch == SYM_GREATER)
+	{	TOKEN_OK_SYM(SYM_GREATER);		}
+	else if (fst_tok_ch == SYM_LESS)
+	{	TOKEN_OK_SYM(SYM_LESS);			}
+	else if (fst_tok_ch == SYM_HASH)
+	{	TOKEN_OK_SYM(SYM_HASH);			}
+
+	ps->next_tok -= 1;
 
 	size_t wrd_len = parser_get_word(ps);
 	char *wrd = ps->line + ps->next_tok;
@@ -68,6 +89,18 @@ redo:
 	{   TOKEN_OK_KW(KW_QWORD);   }
 	else if (IS_KEYWORD(wrd, wrd_len, KW_SIGNED))
 	{   TOKEN_OK_KW(KW_SIGNED);   }
+	else if (IS_KEYWORD(wrd, wrd_len, KW_SYSCALL))
+	{   TOKEN_OK_KW(KW_SYSCALL);   }
+	else if (IS_KEYWORD(wrd, wrd_len, KW_RET))
+	{   TOKEN_OK_KW(KW_RET);   }
+	else if (IS_KEYWORD(wrd, wrd_len, KW_BREAK))
+	{   TOKEN_OK_KW(KW_BREAK);   }
+	else if (IS_KEYWORD(wrd, wrd_len, KW_IF))
+	{   TOKEN_OK_KW(KW_IF);   }
+	else if (IS_KEYWORD(wrd, wrd_len, KW_THEN))
+	{   TOKEN_OK_KW(KW_THEN);   }
+	else if (IS_KEYWORD(wrd, wrd_len, KW_LOOP))
+	{   TOKEN_OK_KW(KW_LOOP);   }
 	else
 	{	TOKEN_OK_IDENT(wrd, wrd_len);	}
 

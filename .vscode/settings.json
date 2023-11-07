@@ -1,6 +1,10 @@
 {
     "files.associations": {
         "cstring": "c",
-        "ratio": "c"
+        "ratio": "c",
+        "*.tcc": "cpp",
+        "iosfwd": "cpp",
+        "fstream": "cpp",
+        "istream": "cpp"
     }
 }
