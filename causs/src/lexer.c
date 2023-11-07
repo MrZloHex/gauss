@@ -51,11 +51,11 @@ lexer_init(char *in)
     {
         if (lx.in_lines[i] == NULL)
         {
-            printf("LINE\t%u:\t0\n", i+1);
+            printf("LINE\t%lu:\t0\n", i+1);
         }
         else
         {
-            printf("LINE\t%u:\t%u,\t`%s`\n", i+1, strlen(lx.in_lines[i]), lx.in_lines[i]);
+            printf("LINE\t%lu:\t%lu,\t`%s`\n", i+1, strlen(lx.in_lines[i]), lx.in_lines[i]);
         }
     }
 
@@ -78,7 +78,8 @@ lexer_lex(Lexer *lx)
         while (tr.error != TOK_EOL)
         {
             tr = parser_next_token(&parser);
-            printf("LINE\t%u:\t"TR_FMT"\n", line+1, TR_FMT_TR(tr));
+            printf("LINE\t%lu:\t", line+1);
+            __print_tr(tr);
             if (tr.token.sym == SYM_SEMICOLON)
             {
                 break;
