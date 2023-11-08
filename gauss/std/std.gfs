@@ -33,11 +33,11 @@ DWORD len: [ QWORD str ]
  | DWORD length: #0
  | LOOP
  |  | BYTE char = ->str
- |  | IF char = 0 THEN
+ |  | IF char = #0 THEN
  |  |  | BREAK
  |  |  \_
- |  | length = length + 1
- |  | str = str + 1
+ |  | length = length + #1
+ |  | str = str + #1
  |  \_
  | RET [ length ]
  \_
@@ -50,9 +50,9 @@ NULL strcpy: [ QWORD source | QWORD destination ]
  |  | BYTE char
  |  | char = ->source
  |  | ->destination = char
- |  | source = source + 1
- |  | destination = destination + 1
- |  | IF char = 0 THEN
+ |  | source = source + #1
+ |  | destination = destination + #1
+ |  | IF char = #0 THEN
  |  |  | BREAK
  |  |  \_
  |  \_

@@ -29,7 +29,10 @@ enum TokenType
 	TokenType_COMMA,
 	TokenType_COLON,
     TokenType_PIPE,
-	
+	TokenType_BSLASH,
+    TokenType_UNDSCR,
+    TokenType_LANGLE,
+    TokenType_RANGLE,
 
 	//Keywords
     TokenType_BYTE,
@@ -69,9 +72,11 @@ class Tokenizer {
 
         bool pass_comment_space();
 
+        bool get_literal(Token *literal);
         bool get_word(Token *word);
         bool get_spec_char(TokenType *spec_char);
 
+        inline bool is_number();
         inline bool is_valid_word();
         inline bool is_white_space();
         inline bool is_end_line();

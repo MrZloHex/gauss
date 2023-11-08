@@ -12,7 +12,7 @@ void Tokenizer::tokenize() {
     int n = 0;
     for (auto i: this->tokens)
     {
-        std::cout << n << ' ' << i.type << '\n';
+        // std::cout << n++ << ' ' << i.type << '\n';
     }
 }
 
@@ -27,8 +27,6 @@ bool Tokenizer::next_token(Token *token) {
         return true;
     }
 
-    // HASH fro INT LITERAL
-
     if (this->get_word(token)) {
         if (token->type == TokenType_IDENTIFIER) {
             std::cout << "ID " << token->value << '\n';
@@ -38,9 +36,31 @@ bool Tokenizer::next_token(Token *token) {
 
         return true;
     }
-    
 
-    return true;
+    if (this->get_literal(token)) {
+        std::cout << "INTLIT " << token->value << '\n';
+        return true;
+    }
+
+    
+    return false;
+}
+
+bool Tokenizer::get_literal(Token *literal) {
+    std::string lit;
+    if (this->tokens.back().type == TokenType_HASH) {
+        while (this->is_number()) {
+            lit.push_back(this->get_curr_char());
+            ++this->raw_p;
+        }
+
+        literal->type = TokenType_INTLIT;
+        literal->value = lit;
+
+        return true;
+    }
+
+    return false;
 }
 
 bool Tokenizer::get_word(Token *word) {
@@ -90,6 +110,10 @@ bool Tokenizer::get_spec_char(TokenType *spec_char) {
         case ',': *spec_char = TokenType_COMMA;  break;
         case ':': *spec_char = TokenType_COLON;  break;
         case '|': *spec_char = TokenType_PIPE;   break;
+        case '\\':*spec_char = TokenType_BSLASH; break;
+        case '_': *spec_char = TokenType_UNDSCR; break;
+        case '<': *spec_char = TokenType_LANGLE; break;
+        case '>': *spec_char = TokenType_RANGLE; break;
 
         case '#': *spec_char = TokenType_HASH;   break;
 
@@ -124,9 +148,14 @@ bool Tokenizer::pass_comment_space() {
 }
 
 
+inline bool Tokenizer::is_number() {
+    char c = this->get_curr_char();
+    return static_cast<bool>(std::isdigit(static_cast<unsigned char>(c)));
+}
+
 inline bool Tokenizer::is_valid_word() {
     char c = this->get_curr_char();
-    return std::isalpha(static_cast<unsigned char>(c)) || (c == '_');
+    return static_cast<bool>(std::isalpha(static_cast<unsigned char>(c)) || (c == '_'));
 }
 
 inline bool Tokenizer::is_white_space() {
