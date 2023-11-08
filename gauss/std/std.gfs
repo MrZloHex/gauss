@@ -42,6 +42,8 @@ DWORD len: [ QWORD str ]
  | RET [ length ]
  \_
 
+ ; COMM
+
 NULL strcpy: [ QWORD source | QWORD destination ]
  | WORD i = #0
  | LOOP

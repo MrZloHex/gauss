@@ -4,7 +4,7 @@ CFLAGS += -Iinc
 
 LDFLAGS =
 
-TARGET = causs
+TARGET = cppauss
 INPUT = ../gauss/std/std.gfs
 
 SRC = src

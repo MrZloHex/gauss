@@ -2,6 +2,8 @@
 #include <fstream>
 #include <string>
 
+#include "tokenizer/tokenizer.hpp"
+
 
 int main (int argc, char **argv) {
 	if (argc < 2) {
@@ -20,17 +22,13 @@ int main (int argc, char **argv) {
 	std::string raw_input(size, '\0');
 	ifl.seekg(0);
 	ifl.read(&raw_input[0], size);
-	
 	ifl.close();
 
-	std::cout << raw_input;
 
-
-
-	// Lexer lx = lexer_init(in_txt);
-	// free(in_txt);
-
-	// lexer_lex(&lx);
+	
+	Tokenizer tknz(raw_input);
+	tknz.tokenize();
+	
 
 	return 0;
 }
