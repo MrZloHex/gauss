@@ -5,7 +5,7 @@ CFLAGS += -Iinc
 LDFLAGS =
 
 TARGET = cppauss
-INPUT = ../gauss/std/std.gfs
+INPUT = ../gauss/std/estd.gfs
 
 SRC = src
 OBJ = obj

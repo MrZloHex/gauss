@@ -1,0 +1,9 @@
+; STD
+
+
+QWORD f_open: [ QWORD filename_p | BYTE mode ]
+ | QWORD file_desc
+ | file_desc = SYSCALL [ #0 | filename_p | mode | #438 ]
+ | RET [ file_desc ]
+ \_
+

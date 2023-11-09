@@ -3,6 +3,7 @@
 #include <string>
 
 #include "tokenizer/tokenizer.hpp"
+#include "tokenizer/parser.hpp"
 
 
 int main (int argc, char **argv) {
@@ -27,8 +28,11 @@ int main (int argc, char **argv) {
 
 	
 	Tokenizer tknz(raw_input);
+	std::cout << "\nTokenization...\n\n";
 	tknz.tokenize();
-	
+	Parser parser(tknz.get_tokens());
+	std::cout << "\nParsing...\n\n";
+	parser.parse();
 
 	return 0;
 }

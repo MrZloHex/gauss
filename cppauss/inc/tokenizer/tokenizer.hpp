@@ -14,7 +14,7 @@ static constexpr std::string_view TokenTypes[] = {
     ",", ":", "|", "\\", "_",
 
     "BYTE", "WORD", "DWORD", "QWORD",
-    "UNRET", "RET", "NULL", "SYSCALL",
+    "UNRET", "NULL", "RET", "SYSCALL",
     "LOOP", "THEN", "IF", "BREAK",
 
 };
@@ -56,8 +56,8 @@ enum TokenType
     TokenType_QWORD,
     TokenType_UNRET,
     TokenType_NULL,
-    TokenType_SYSCALL,
     TokenType_RET,
+    TokenType_SYSCALL,
     TokenType_LOOP,
     TokenType_THEN,
 	TokenType_IF,
@@ -74,6 +74,10 @@ struct Token {
     std::string value;
 
     friend std::ostream& operator<<(std::ostream& os, const Token& t);
+
+    bool is_var_size() {
+        return (type == TokenType_BYTE) || (type == TokenType_WORD) || (type == TokenType_DWORD) || (type == TokenType_QWORD);
+    }
 };
 
 class Tokenizer {
@@ -105,5 +109,5 @@ class Tokenizer {
         explicit Tokenizer(std::string raw_input) : raw_input(raw_input) {};
 
         void tokenize();
-
+        std::vector<Token> get_tokens() { return this->tokens; }
 };
