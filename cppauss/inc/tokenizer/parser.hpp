@@ -22,6 +22,10 @@ enum AST_NodeType {
     NT_INTLIT    
 };
 
+static constexpr std::string_view VarSize[] = {
+    "BYTE", "WORD", "DWORD", "QWORD", "UNRET", "NULL"
+};
+
 enum AST_Types {
     AT_BYTE, AT_WORD,
     AT_DWORD, AT_QWORD,
@@ -54,8 +58,8 @@ struct AST_FuncDecl {
 };
 
 struct AST_Print {
-    void operator()(const AST_FuncDecl &f) { std::cout << NodeTypes[f.type] << ' ' << f.name; }
-    void operator()(const AST_VarDecl  &v) { std::cout << NodeTypes[v.type] << ' ' << v.name; }
+    void operator()(const AST_FuncDecl &f) { std::cout << NodeTypes[f._nt] << ' ' << VarSize[f.type] << ' ' << f.name; }
+    void operator()(const AST_VarDecl  &v) { std::cout << NodeTypes[v._nt] << ' ' << VarSize[v.type] << ' ' << v.name; }
 };
 
 typedef std::variant<AST_FuncDecl, AST_VarDecl> AST_Node;
