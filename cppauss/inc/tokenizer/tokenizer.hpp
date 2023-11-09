@@ -69,11 +69,16 @@ enum TokenType
 	TokenType_EOF
 };
 
+struct Position {
+    std::size_t row = 1, col = 1;
+};
+
 struct Token {
     TokenType type;
     std::string value;
+    Position pos;
 
-    friend std::ostream& operator<<(std::ostream& os, const Token& t);
+    friend std::ostream &operator<<(std::ostream &os, const Token &t);
 
     bool is_var_size() {
         return (type == TokenType_BYTE) || (type == TokenType_WORD) || (type == TokenType_DWORD) || (type == TokenType_QWORD);
@@ -87,7 +92,7 @@ class Tokenizer {
         std::string raw_input;
         std::size_t raw_p = 0;
 
-        std::size_t row = 1, col = 1;
+        Position pos;
 
         bool next_token(Token *token);
 
@@ -95,12 +100,13 @@ class Tokenizer {
 
         bool get_literal(Token *literal);
         bool get_word(Token *word);
-        bool get_spec_char(TokenType *spec_char);
+        bool get_spec_char(Token *spec_char);
 
         inline bool is_number();
         inline bool is_valid_word();
         inline bool is_white_space();
         inline bool is_end_line();
+        
         inline char get_curr_char();
 
         void debug_print();

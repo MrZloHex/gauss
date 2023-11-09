@@ -25,14 +25,13 @@ int main (int argc, char **argv) {
 	ifl.read(&raw_input[0], size);
 	ifl.close();
 
-
 	
 	Tokenizer tknz(raw_input);
 	std::cout << "\nTokenization...\n\n";
 	tknz.tokenize();
-	Parser parser(tknz.get_tokens());
-	std::cout << "\nParsing...\n\n";
-	parser.parse();
+	// Parser parser(tknz.get_tokens());
+	// std::cout << "\nParsing...\n\n";
+	// parser.parse();
 
 	return 0;
 }

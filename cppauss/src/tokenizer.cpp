@@ -17,7 +17,7 @@ bool Tokenizer::next_token(Token *token) {
 
     while (this->pass_comment_space()) {}
 
-    if (this->get_spec_char(&(token->type))) {
+    if (this->get_spec_char(token)) {
         return true;
     }
 
@@ -33,6 +33,8 @@ bool Tokenizer::next_token(Token *token) {
 }
 
 bool Tokenizer::get_literal(Token *literal) {
+    if (this->tokens.empty()) { return false; }
+
     std::string lit;
     if (this->tokens.back().type == TokenType_HASH) {
         while (this->is_number()) {
@@ -42,6 +44,10 @@ bool Tokenizer::get_literal(Token *literal) {
 
         literal->type = TokenType_INTLIT;
         literal->value = lit;
+
+        literal->pos.col = this->pos.col;
+        literal->pos.row = this->pos.row;
+        this->pos.col += lit.length();
 
         return true;
     }
@@ -58,6 +64,11 @@ bool Tokenizer::get_word(Token *word) {
     }
 
     if (str.empty()) { return false; }
+
+    word->pos.col = this->pos.col;
+    word->pos.row = this->pos.row;
+
+    this->pos.col += str.length();
     
     if      (str == "BYTE")    { word->type = TokenType_BYTE;    }
     else if (str == "WORD")    { word->type = TokenType_WORD;    }
@@ -79,34 +90,38 @@ bool Tokenizer::get_word(Token *word) {
     return true;
 }
 
-bool Tokenizer::get_spec_char(TokenType *spec_char) {
+bool Tokenizer::get_spec_char(Token *spec_char) {
     switch (this->get_curr_char()) {
-        case '+': *spec_char = TokenType_PLUS;  break;
-        case '-': *spec_char = TokenType_MINUS; break;
-        case '*': *spec_char = TokenType_TIMES; break;
-        case '/': *spec_char = TokenType_SLASH; break;
-        case '=': *spec_char = TokenType_EQL;   break;
+        case '+': spec_char->type = TokenType_PLUS;  break;
+        case '-': spec_char->type = TokenType_MINUS; break;
+        case '*': spec_char->type = TokenType_TIMES; break;
+        case '/': spec_char->type = TokenType_SLASH; break;
+        case '=': spec_char->type = TokenType_EQL;   break;
 
-        case '{': *spec_char = TokenType_LPAREN; break;
-        case '}': *spec_char = TokenType_RPAREN; break;
-        case '[': *spec_char = TokenType_LBRACK; break;
-        case ']': *spec_char = TokenType_RBRACK; break;
-        case '(': *spec_char = TokenType_LBRACE; break;
-        case ')': *spec_char = TokenType_RBRACE; break;
-        case '<': *spec_char = TokenType_LCHEV;  break;
-        case '>': *spec_char = TokenType_RCHEV;  break;
-        case ',': *spec_char = TokenType_COMMA;  break;
-        case ':': *spec_char = TokenType_COLON;  break;
-        case '|': *spec_char = TokenType_PIPE;   break;
-        case '\\':*spec_char = TokenType_BSLASH; break;
-        case '_': *spec_char = TokenType_UNDSCR; break;
+        case '{': spec_char->type = TokenType_LPAREN; break;
+        case '}': spec_char->type = TokenType_RPAREN; break;
+        case '[': spec_char->type = TokenType_LBRACK; break;
+        case ']': spec_char->type = TokenType_RBRACK; break;
+        case '(': spec_char->type = TokenType_LBRACE; break;
+        case ')': spec_char->type = TokenType_RBRACE; break;
+        case '<': spec_char->type = TokenType_LCHEV;  break;
+        case '>': spec_char->type = TokenType_RCHEV;  break;
+        case ',': spec_char->type = TokenType_COMMA;  break;
+        case ':': spec_char->type = TokenType_COLON;  break;
+        case '|': spec_char->type = TokenType_PIPE;   break;
+        case '\\':spec_char->type = TokenType_BSLASH; break;
+        case '_': spec_char->type = TokenType_UNDSCR; break;
 
-        case '#': *spec_char = TokenType_HASH;   break;
+        case '#': spec_char->type = TokenType_HASH;   break;
 
         default: return false;
     }
 
     ++this->raw_p;
+    spec_char->pos.col = this->pos.col;
+    spec_char->pos.row = this->pos.row;
+    ++this->pos.col;
+
     return true;
 }
 
@@ -116,14 +131,20 @@ bool Tokenizer::pass_comment_space() {
     // check for white spaces
     while (this->is_white_space()) {
         ++this->raw_p;
-        ++this->col;
+        ++this->pos.col;
         res = true;
+    }
+
+    
+    while (this->is_end_line()) {
+        ++this->raw_p;
+        ++this->pos.row;
+        this->pos.col = 1;
+        return true;
     }
 
     if (this->get_curr_char() == ';') {
         while (!this->is_end_line()) { ++this->raw_p; }
-        this->col = 0;
-        ++this->row;
         res = true;
     }
     
@@ -143,8 +164,8 @@ inline bool Tokenizer::is_valid_word() {
 
 inline bool Tokenizer::is_white_space() {
     char c = this->get_curr_char();
-    // return (c == ' ') || (c == '\t') || (c == '\f') || (c == '\v');
-    return static_cast<bool>(std::isspace(static_cast<unsigned char>(c)));
+    return (c == ' ') || (c == '\t') || (c == '\f') || (c == '\v');
+    // return static_cast<bool>(std::isspace(static_cast<unsigned char>(c)));
 }
 
 inline bool Tokenizer::is_end_line() {
@@ -157,22 +178,16 @@ inline char Tokenizer::get_curr_char() {
 }
 
 void Tokenizer::debug_print() {
-    int n = 0;
     for (Token i: this->tokens)
     {
-        std::cout << i << ' ';
-        if (n == 20) {
-            std::cout << '\n';
-            n = 0;
-        }
-        ++n;
+        std::cout << i << '\n';
     }
     std::cout << '\n';
 }
 
 
 std::ostream &operator<<(std::ostream &os, const Token &t) { 
-    os << TokenTypes[t.type];
+    os << t.pos.row << ':' << t.pos.col << ' ' << TokenTypes[t.type];
     if (t.type == TokenType_IDENTIFIER || t.type == TokenType_INTLIT) {
         os << '(' << t.value << ')';
     }
