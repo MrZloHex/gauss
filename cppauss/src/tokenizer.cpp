@@ -9,39 +9,25 @@ void Tokenizer::tokenize() {
         this->tokens.push_back(token);
     }
 
-    int n = 0;
-    for (auto i: this->tokens)
-    {
-        // std::cout << n++ << ' ' << i.type << '\n';
-    }
+    this->debug_print();
 }
 
 bool Tokenizer::next_token(Token *token) {
+    token->value = "";
+
     while (this->pass_comment_space()) {}
 
     if (this->get_spec_char(&(token->type))) {
-        std::cout << "SPEC CHAR " << token->type << '\n';
-
-        ++this->col;
-
         return true;
     }
 
     if (this->get_word(token)) {
-        if (token->type == TokenType_IDENTIFIER) {
-            std::cout << "ID " << token->value << '\n';
-        } else {
-            std::cout << "KEYWORD " << token->type << '\n';
-        }
-
         return true;
     }
 
     if (this->get_literal(token)) {
-        std::cout << "INTLIT " << token->value << '\n';
         return true;
     }
-
     
     return false;
 }
@@ -107,13 +93,13 @@ bool Tokenizer::get_spec_char(TokenType *spec_char) {
         case ']': *spec_char = TokenType_RBRACK; break;
         case '(': *spec_char = TokenType_LBRACE; break;
         case ')': *spec_char = TokenType_RBRACE; break;
+        case '<': *spec_char = TokenType_LCHEV;  break;
+        case '>': *spec_char = TokenType_RCHEV;  break;
         case ',': *spec_char = TokenType_COMMA;  break;
         case ':': *spec_char = TokenType_COLON;  break;
         case '|': *spec_char = TokenType_PIPE;   break;
         case '\\':*spec_char = TokenType_BSLASH; break;
         case '_': *spec_char = TokenType_UNDSCR; break;
-        case '<': *spec_char = TokenType_LANGLE; break;
-        case '>': *spec_char = TokenType_RANGLE; break;
 
         case '#': *spec_char = TokenType_HASH;   break;
 
@@ -135,9 +121,6 @@ bool Tokenizer::pass_comment_space() {
     }
 
     if (this->get_curr_char() == ';') {
-        
-        std::cout << "COMMENT " << col << ' ' << row << '\n';
-
         while (!this->is_end_line()) { ++this->raw_p; }
         this->col = 0;
         ++this->row;
@@ -171,4 +154,28 @@ inline bool Tokenizer::is_end_line() {
 
 inline char Tokenizer::get_curr_char() {
     return this->raw_input[this->raw_p];
+}
+
+void Tokenizer::debug_print() {
+    int n = 0;
+    for (Token i: this->tokens)
+    {
+        std::cout << i << ' ';
+        if (n == 20) {
+            std::cout << '\n';
+            n = 0;
+        }
+        ++n;
+    }
+    std::cout << '\n';
+}
+
+
+std::ostream &operator<<(std::ostream &os, const Token &t) { 
+    os << TokenTypes[t.type];
+    if (t.type == TokenType_IDENTIFIER || t.type == TokenType_INTLIT) {
+        os << '(' << t.value << ')';
+    }
+
+    return os;
 }

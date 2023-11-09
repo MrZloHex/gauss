@@ -3,6 +3,21 @@
 #include <string>
 #include <vector>
 
+static constexpr std::string_view TokenTypes[] = {
+	"ID",
+
+    "#",
+    "LIT",
+
+    "+", "-", "*", "/", "=",
+    "(", ")", "[", "]", "{", "}", "<", ">",
+    ",", ":", "|", "\\", "_",
+
+    "BYTE", "WORD", "DWORD", "QWORD",
+    "UNRET", "RET", "NULL", "SYSCALL",
+    "LOOP", "THEN", "IF", "BREAK",
+
+};
 
 enum TokenType
 {
@@ -26,13 +41,13 @@ enum TokenType
 	TokenType_RBRACK,
 	TokenType_LBRACE,
 	TokenType_RBRACE,
+    TokenType_LCHEV,
+    TokenType_RCHEV,
 	TokenType_COMMA,
 	TokenType_COLON,
     TokenType_PIPE,
 	TokenType_BSLASH,
     TokenType_UNDSCR,
-    TokenType_LANGLE,
-    TokenType_RANGLE,
 
 	//Keywords
     TokenType_BYTE,
@@ -57,6 +72,8 @@ enum TokenType
 struct Token {
     TokenType type;
     std::string value;
+
+    friend std::ostream& operator<<(std::ostream& os, const Token& t);
 };
 
 class Tokenizer {
@@ -81,6 +98,8 @@ class Tokenizer {
         inline bool is_white_space();
         inline bool is_end_line();
         inline char get_curr_char();
+
+        void debug_print();
 
     public:
         explicit Tokenizer(std::string raw_input) : raw_input(raw_input) {};
