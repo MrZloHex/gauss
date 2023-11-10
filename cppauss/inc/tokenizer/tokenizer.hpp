@@ -6,16 +6,18 @@
 static constexpr std::string_view TokenTypes[] = {
 	"ID",
 
-    "#",
+    "#", "'", "\"",
     "LIT",
 
-    "+", "-", "*", "/", "=",
-    "(", ")", "[", "]", "{", "}", "<", ">",
-    ",", ":", "|", "\\", "_",
+    "+", "-", "*", "/", "=", ":", "@", "!",
+    // "(", ")", "{", "}",
+    "[", "]", "<", ">",
+    ",", "|", "\\", "_",
 
     "BYTE", "WORD", "DWORD", "QWORD",
-    "UNRET", "NULL", "RET", "SYSCALL",
-    "LOOP", "THEN", "IF", "BREAK",
+    "VOID", "RET", "SYSCALL",
+    "LOOP", "IF", "ELIF", "ELSE",
+    "BREAK", "CONTINUE"
 
 };
 
@@ -25,6 +27,8 @@ enum TokenType
 
 	//Literals
     TokenType_HASH,
+    TokenType_QUOTE,
+    TokenType_DQOUTE,
 	TokenType_INTLIT,
 
 	//Operators
@@ -33,18 +37,20 @@ enum TokenType
 	TokenType_TIMES,
 	TokenType_SLASH,
 	TokenType_EQL,
+	TokenType_COLON,
+    TokenType_AT,
+    TokenType_EXCLM,
 
 	//Seperators
-	TokenType_LPAREN,
-	TokenType_RPAREN,
+	// TokenType_LPAREN,
+	// TokenType_RPAREN,
+	// TokenType_LBRACE,
+	// TokenType_RBRACE,
 	TokenType_LBRACK,
 	TokenType_RBRACK,
-	TokenType_LBRACE,
-	TokenType_RBRACE,
     TokenType_LCHEV,
     TokenType_RCHEV,
 	TokenType_COMMA,
-	TokenType_COLON,
     TokenType_PIPE,
 	TokenType_BSLASH,
     TokenType_UNDSCR,
@@ -54,14 +60,15 @@ enum TokenType
     TokenType_WORD,
     TokenType_DWORD,
     TokenType_QWORD,
-    TokenType_UNRET,
-    TokenType_NULL,
+    TokenType_VOID,
     TokenType_RET,
     TokenType_SYSCALL,
     TokenType_LOOP,
-    TokenType_THEN,
 	TokenType_IF,
+    TokenType_ELIF,
+    TokenType_ELSE,
     TokenType_BREAK,
+    TokenType_CONTINUE,
 
 
 	//Unique

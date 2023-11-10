@@ -24,7 +24,7 @@ DWORD len: [ QWORD str ]
 VOID _start: []
  | ; MAIN FUNCTION
  | QWORD hello := "Hello GAUSS!"
- | DWORD length := 0
+ | DWORD length := #0
  | length := @len [ hello ]
  | @f_write [ #0 | hello | length ]
  |

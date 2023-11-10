@@ -70,18 +70,19 @@ bool Tokenizer::get_word(Token *word) {
 
     this->pos.col += str.length();
     
-    if      (str == "BYTE")    { word->type = TokenType_BYTE;    }
-    else if (str == "WORD")    { word->type = TokenType_WORD;    }
-    else if (str == "DWORD")   { word->type = TokenType_DWORD;   }
-    else if (str == "QWORD")   { word->type = TokenType_QWORD;   }
-    else if (str == "NULL")    { word->type = TokenType_NULL;    }
-    else if (str == "UNRET")   { word->type = TokenType_UNRET;   }
-    else if (str == "SYSCALL") { word->type = TokenType_SYSCALL; }
-    else if (str == "RET")     { word->type = TokenType_RET;     }
-    else if (str == "LOOP")    { word->type = TokenType_LOOP;    }
-    else if (str == "THEN")    { word->type = TokenType_THEN;    }
-    else if (str == "IF")      { word->type = TokenType_IF;      }
-    else if (str == "BREAK")   { word->type = TokenType_BREAK;   }
+    if      (str == "BYTE")     { word->type = TokenType_BYTE;      }
+    else if (str == "WORD")     { word->type = TokenType_WORD;      }
+    else if (str == "DWORD")    { word->type = TokenType_DWORD;     }
+    else if (str == "QWORD")    { word->type = TokenType_QWORD;     }
+    else if (str == "VOID")     { word->type = TokenType_VOID;      }
+    else if (str == "SYSCALL")  { word->type = TokenType_SYSCALL;   }
+    else if (str == "RET")      { word->type = TokenType_RET;       }
+    else if (str == "LOOP")     { word->type = TokenType_LOOP;      }
+    else if (str == "IF")       { word->type = TokenType_IF;        }
+    else if (str == "ELIF")     { word->type = TokenType_ELIF;      }
+    else if (str == "ELSE")     { word->type = TokenType_ELSE;      }
+    else if (str == "BREAK")    { word->type = TokenType_BREAK;     }
+    else if (str == "CONTINUE") { word->type = TokenType_CONTINUE;  }
     else {
         word->type  = TokenType_IDENTIFIER;
         word->value = str;
@@ -97,22 +98,26 @@ bool Tokenizer::get_spec_char(Token *spec_char) {
         case '*': spec_char->type = TokenType_TIMES; break;
         case '/': spec_char->type = TokenType_SLASH; break;
         case '=': spec_char->type = TokenType_EQL;   break;
+        case '@': spec_char->type = TokenType_AT;    break;
+        case '!': spec_char->type = TokenType_EXCLM; break;
+        case ':': spec_char->type = TokenType_COLON; break;
 
-        case '{': spec_char->type = TokenType_LPAREN; break;
-        case '}': spec_char->type = TokenType_RPAREN; break;
+        // case '{': spec_char->type = TokenType_LPAREN; break;
+        // case '}': spec_char->type = TokenType_RPAREN; break;
+        // case '(': spec_char->type = TokenType_LBRACE; break;
+        // case ')': spec_char->type = TokenType_RBRACE; break;
         case '[': spec_char->type = TokenType_LBRACK; break;
         case ']': spec_char->type = TokenType_RBRACK; break;
-        case '(': spec_char->type = TokenType_LBRACE; break;
-        case ')': spec_char->type = TokenType_RBRACE; break;
         case '<': spec_char->type = TokenType_LCHEV;  break;
         case '>': spec_char->type = TokenType_RCHEV;  break;
         case ',': spec_char->type = TokenType_COMMA;  break;
-        case ':': spec_char->type = TokenType_COLON;  break;
         case '|': spec_char->type = TokenType_PIPE;   break;
         case '\\':spec_char->type = TokenType_BSLASH; break;
         case '_': spec_char->type = TokenType_UNDSCR; break;
 
         case '#': spec_char->type = TokenType_HASH;   break;
+        case '\'':spec_char->type = TokenType_QUOTE;  break;
+        case '"': spec_char->type = TokenType_DQOUTE; break;
 
         default: return false;
     }
