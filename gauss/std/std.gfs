@@ -35,6 +35,8 @@ DWORD len: [ QWORD str ]
  |  | BYTE char = ->str
  |  | IF char = #0 THEN
  |  |  | BREAK
+ |  | ELSE
+ |  |  | ; SMTH
  |  |  \_
  |  | length = length + #1
  |  | str = str + #1

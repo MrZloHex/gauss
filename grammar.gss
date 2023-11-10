@@ -1,0 +1,57 @@
+.GSS
+
+
+
+SIZE SPECIFIER:     {VOID}  
+                    {BYTE}
+                    {WORD}
+                    {DWORD}
+                    {QWORD}
+                    ????{SEQ}
+                
+
+BLOCK KEYWORD:      {BREAK}
+                    {CONTINUE}
+
+BLOCK DECL KEYWORD: {IF}
+                    {ELIF}
+                    {ELSE}
+                    {LOOP}
+
+SYSCALL FUNC:       {SYSCALL}
+
+
+IDENTIFIER:         "A..Z", "a..z", "0..9", "_"
+
+LITERALS:           {#}<num>        ANY
+                    {'}<char>{'}    BYTE
+                    {"}<string>{"}  QWORD
+
+UNARY SIGN:         {@}, {->}
+BINARY SIGN:        {+}, {-}, {*}, {/}, {=}, {!=}, {<}, {>}, {<=}, {>=}
+
+
+VAR DECL:           <SIZE> <ID>
+
+FUNC DECL:          <VAR DECL>
+FUNC CALL:          {@}<ID>|<SYSCALL FUNC> <SET>
+
+ASSIGNMENT:         <VAR DECL> | <ID> {:=} <LIT> | <ID> | <EXPR> | <FUNC CALL>
+EXPRESSION:         <UNARY EXPR> | <BINARY EXPR>
+
+UNARY EXPRESSION:   <UNARY SIGN> <LIT> | <ID> | <EXPR>
+BINARY EXPRESSION:  <LIT> | <ID> | <EXPR> <BINARY SIGN> <LIT> | <ID> | <EXPR>
+
+SET:                {[} <ID> | <VAR DECL> | <LIT> | <EXPR> {]} | {|} ... {]}
+
+BLOCK DECL:         <FUNC DECL> | <BLOCK DECL KEYWORD>: <SET>
+
+BLOCK:              <BLOCK DECL>
+                     {|} <ASSIGN> | <EXPR> | <VAR DECL> | <BLOCK> | <BLOCK KEYWORD>
+                     ....
+                     {\_}
+
+
+RETURN STATE:       {RET} <SET>
+
+
